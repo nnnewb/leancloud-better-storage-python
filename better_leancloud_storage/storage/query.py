@@ -41,7 +41,7 @@ class Condition(object):
         return self._operator
 
     def apply(self, query):
-        self.operator_mapping[self._operator](query, self._operand_left, self._operand_right)
+        self.operator_mapping[self._operator](query, self._operand_left.field_name, self._operand_right)
 
 
 class QueryLinkRelation(Enum):
@@ -126,6 +126,7 @@ class Query(object):
     def filter(self, *conditions):
         """ select data with custom conditions. """
         self._conditions.extend(conditions)
+        return self
 
     def filter_by(self, **kwargs):
         """ select data with equation conditions. """
@@ -134,6 +135,7 @@ class Query(object):
             if field is None:
                 raise KeyError(f'Unknown field name {key}.')
             self._conditions.append(field == val)
+        return self
 
     def and_(self):
         """ create new query and linked current query with and. """
@@ -163,7 +165,7 @@ class Query(object):
                 return 0
             raise
 
-    def find(self, skip, limit):
+    def find(self, skip=0, limit=100):
         self._skip_elements = skip
         self._result_limit = limit
         q = self.build_query()
