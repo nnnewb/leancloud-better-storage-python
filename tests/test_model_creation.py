@@ -27,6 +27,16 @@ class TestModelCreation(TestCase):
         except KeyError:
             pass
 
+    def test_create_unknown_field(self):
+        class ModelA(models.Model):
+            pass
+
+        try:
+            ModelA.create(name='123')
+            raise Exception('Unknown field in creation should raise a KeyError!')
+        except KeyError:
+            pass
+
     def test_simple_create_inherit(self):
         class BaseModel(models.Model):
             name = fields.Field()
