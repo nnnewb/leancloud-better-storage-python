@@ -1,8 +1,23 @@
 from unittest import TestCase
+
+import leancloud
+
 from better_leancloud_storage.storage import models, fields
+
+from .utils import setup
 
 
 class TestModelCreation(TestCase):
+
+    def setUp(self):
+        self.cls_name = 'TestModel'
+        setup()
+
+    def tearDown(self):
+        try:
+            leancloud.Object.destroy_all(leancloud.Query(self.cls_name).find())
+        except leancloud.LeanCloudError:
+            pass
 
     def test_simple_access(self):
         class ModelA(models.Model):
@@ -50,3 +65,14 @@ class TestModelCreation(TestCase):
         c = ModelC.create(name='!', age=10)
         self.assertEqual(c.name, '!')
         self.assertEqual(c.age, 10)
+
+    def test_commit_change(self):
+        class ModelA(models.Model):
+            name = fields.Field()
+
+        model = ModelA.create(name='hi')
+        model.commit()
+        self.assertEqual(model.name, 'hi')
+        model.name = 'ho'
+        model.commit()
+        self.assertEqual(model.name, 'ho')
