@@ -127,6 +127,16 @@ class Model(object, metaclass=ModelMeta):
 
     def drop(self):
         self._lc_obj.destroy()
+        self._lc_obj = None
+
+    @classmethod
+    def drop_all(cls, *models):
+        leancloud.Object.extend(cls.__lc_cls__).destroy_all([
+            model._lc_obj
+            for model in models
+        ])
+        for model in models:
+            model._lc_obj = None
 
     @classmethod
     def query(cls):
