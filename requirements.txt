@@ -1,1 +1,12 @@
-leancloud
+arrow==0.12.1
+certifi==2018.8.24
+chardet==3.0.4
+idna==2.7
+iso8601==0.1.12
+leancloud==2.1.8
+python-dateutil==2.7.3
+qiniu==7.1.4
+requests==2.19.1
+six==1.11.0
+urllib3==1.23
+Werkzeug==0.14.1
