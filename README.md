@@ -2,6 +2,8 @@
 
 ![travis-ci](https://www.travis-ci.com/nnnewb/leancloud-better-storage-python.svg?branch=master)
 
+:construction_worker: 单元测试依赖于一个可用的leancloud-app，所以travis-ci的测试总是failed的，考虑后面怎么做个mock。
+
 更优雅且pythonic的方式使用leancloud storage。
 
 :construction: 施工中，文档也没有。有意参与或者疑问就开个issue，看到回复。

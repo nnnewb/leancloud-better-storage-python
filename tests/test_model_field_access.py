@@ -4,7 +4,7 @@ import leancloud
 
 from better_leancloud_storage.storage import models, fields
 
-from .utils import setup
+from tests.utils import setup
 
 
 class TestModelCreation(TestCase):
