@@ -182,8 +182,7 @@ class Query(object):
 
     def paginate(self, page, size):
         """ paginate query result which is leancloud default and recommend behavior. """
-        q = self.build_query()
-        return Pages(q, page, size)
+        return Pages(self, page, size)
 
     def _build_next(self, rel):
         cur = self._last

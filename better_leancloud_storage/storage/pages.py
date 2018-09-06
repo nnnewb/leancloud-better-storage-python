@@ -33,11 +33,16 @@ class Pages(object):
             self._content_cache = query.find(self.element_offset, self._size)
         return self._content_cache
 
+    def __iter__(self):
+        """ get iterator """
+        return self
+
     def __next__(self):
         """ go next page """
-        cur = Pages(self._query, self._page + 1, self._size)
+        self._page += 1
+        self._content_cache = []
 
-        if len(cur.items) == 0:
+        if len(self.items) == 0:
             raise StopIteration()
 
-        return cur
+        return self
