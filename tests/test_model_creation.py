@@ -78,3 +78,14 @@ class TestModelCreation(TestCase):
         a = ModelA.create(name='Hello world')
         a.commit()
         self.assertEqual(a.name, 'Hello world')
+
+    def test_bulk_commit(self):
+        class ModelA(models.Model):
+            __lc_cls__ = self.cls_name
+            name = fields.Field()
+
+        instances = [
+            ModelA.create(name='Hi {0}'.format(i))
+            for i in range(10)
+        ]
+        ModelA.commit_all(*instances)

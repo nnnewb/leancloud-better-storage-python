@@ -125,6 +125,13 @@ class Model(object, metaclass=ModelMeta):
         self._lc_obj.save()
         return self
 
+    @classmethod
+    def commit_all(cls, *models):
+        leancloud.Object.extend(cls.__lc_cls__).save_all([
+            model._lc_obj
+            for model in models
+        ])
+
     def drop(self):
         self._lc_obj.destroy()
         self._lc_obj = None
