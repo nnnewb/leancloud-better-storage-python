@@ -15,7 +15,11 @@ class TestModelCreation(TestCase):
 
     def tearDown(self):
         try:
-            leancloud.Object.destroy_all(leancloud.Query(self.cls_name).find())
+            while True:
+                result = leancloud.Query(self.cls_name).find()
+                if len(result) == 0:
+                    break
+                leancloud.Object.destroy_all(result)
         except leancloud.LeanCloudError:
             pass
 
@@ -68,6 +72,7 @@ class TestModelCreation(TestCase):
 
     def test_commit_change(self):
         class ModelA(models.Model):
+            __lc_cls__ = self.cls_name
             name = fields.Field()
 
         model = ModelA.create(name='hi')
