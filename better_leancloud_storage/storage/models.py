@@ -123,6 +123,7 @@ class Model(object, metaclass=ModelMeta):
 
     def commit(self):
         self._lc_obj.save()
+        return self
 
     def drop(self):
         self._lc_obj.destroy()
