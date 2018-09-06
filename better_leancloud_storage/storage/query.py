@@ -130,11 +130,14 @@ class Query(object):
 
     def filter_by(self, **kwargs):
         """ select data with equation conditions. """
-        for key, val in kwargs.items():
-            field = self._model.__fields__.get(key)
-            if field is None:
-                raise KeyError(f'Unknown field name {key}.')
-            self._conditions.append(field == val)
+        input_key_set = set(kwargs.keys())
+        fields_key_set = set(self._model.__fields__.keys())
+
+        if input_key_set.issubset(fields_key_set) is False:
+            raise KeyError('Unknown fields {0}'.format(input_key_set - fields_key_set))
+
+        self._conditions.extend([self._model.__fields__[key] == val for key, val in kwargs.items()])
+
         return self
 
     def and_(self):
