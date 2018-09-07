@@ -19,6 +19,7 @@ from better_leancloud_storage.storage.fields import Field
 class Product(Model):
     name = Field('product_name', nullable=False)
     price = Field(nullable=False)
+    field3 = Field(nullable=False, default=1)
 ```
 
 ### CURD
