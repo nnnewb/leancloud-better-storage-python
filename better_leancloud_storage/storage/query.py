@@ -4,6 +4,7 @@ import leancloud
 
 from better_leancloud_storage.storage.pages import Pages
 from .err import LeanCloudErrorCode
+from .order import OrderBy, ResultElementOrder
 
 
 class ConditionOperator(Enum):
@@ -104,6 +105,7 @@ class Query(object):
         self._conditions = []
         self._result_limit = 100
         self._skip_elements = 0
+        self._order_by_elements = []
 
     def build_query(self, _keep_going__=False):
         """ build leancloud query. """
@@ -118,6 +120,12 @@ class Query(object):
                 query = leancloud.Query.and_(query, cur._next.query.build_query(_keep_going__=True))
             elif cur._next.relation == QueryLinkRelation.RelationOr:
                 query = leancloud.Query.or_(query, cur._next.query.build_query(_keep_going__=True))
+
+        for order_by in self._order_by_elements:
+            if order_by.order == ResultElementOrder.Ascending:
+                query.add_ascending(order_by.field.field_name)
+            elif order_by.order == ResultElementOrder.Descending:
+                query.add_descending(order_by.field.field_name)
 
         query.skip(self._skip_elements)
         query.limit(self._result_limit)
@@ -168,6 +176,11 @@ class Query(object):
                 return 0
             raise
 
+    def order_by(self, *order_by):
+        self._validate_fields_belong_to_self(*map(lambda o: o.field, order_by))
+        self._order_by_elements.extend(order_by)
+        return self
+
     def find(self, skip=0, limit=100):
         self._skip_elements = skip
         self._result_limit = limit
@@ -196,3 +209,9 @@ class Query(object):
         curr_query._next = next_link
 
         return next_query
+
+    def _validate_fields_belong_to_self(self, *fields):
+        for field in fields:
+            if field.model.__lc_cls__ != self._model.__lc_cls__:
+                return False
+        return True

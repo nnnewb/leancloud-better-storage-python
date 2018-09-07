@@ -92,3 +92,13 @@ class TestModelQuery(TestCase):
 
     def test_count(self):
         self.assertEqual(self.Model.query().count(), 3)
+
+    def test_sort_result_order_by_ascending(self):
+        model = self.Model.query().order_by(self.Model.age.asc).first()
+        self.assertEqual(model.age, 18)
+        self.assertEqual(model.name, 'Hi')
+
+    def test_sort_result_order_by_descending(self):
+        model = self.Model.query().order_by(self.Model.age.desc).first()
+        self.assertEqual(model.age, 23)
+        self.assertEqual(model.name, 'He')

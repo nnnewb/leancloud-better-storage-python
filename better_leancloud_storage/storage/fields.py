@@ -1,5 +1,7 @@
 from better_leancloud_storage.storage.query import Condition, ConditionOperator
 
+from .order import OrderBy, ResultElementOrder
+
 FIELD_AVAILABLE_TYPES = [int, float, str, list, dict]
 
 
@@ -20,6 +22,14 @@ class Field(object):
     @property
     def model(self):
         return self._model
+
+    @property
+    def desc(self):
+        return OrderBy(ResultElementOrder.Descending, self)
+
+    @property
+    def asc(self):
+        return OrderBy(ResultElementOrder.Ascending, self)
 
     def __init__(self, name=None, nullable=True, default=None, type_=None):
         self._model = None
