@@ -1,8 +1,9 @@
+from copy import deepcopy
+
 import leancloud
 
 from better_leancloud_storage.storage.query import Query
-from .fields import Field
-from copy import deepcopy
+from better_leancloud_storage.storage.fields import Field
 
 
 class ModelMeta(type):

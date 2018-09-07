@@ -3,8 +3,8 @@ from enum import Enum
 import leancloud
 
 from better_leancloud_storage.storage.pages import Pages
-from .err import LeanCloudErrorCode
-from .order import ResultElementOrder
+from better_leancloud_storage.storage.err import LeanCloudErrorCode
+from better_leancloud_storage.storage.order import ResultElementOrder
 
 
 class ConditionOperator(Enum):
