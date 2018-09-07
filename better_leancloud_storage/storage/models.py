@@ -100,7 +100,7 @@ class Model(object, metaclass=ModelMeta):
         required_key_set = {
             key
             for key, field in cls.__fields__.items()
-            if field.field_nullable is False and field.default is None
+            if field.nullable is False and field.default is None
         }
         input_key_set = set(kwargs.keys())
         fields_key_set = set(cls.__fields__.keys())

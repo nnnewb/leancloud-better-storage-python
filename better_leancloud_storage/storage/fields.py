@@ -12,7 +12,7 @@ class Field(object):
         return self._field_name
 
     @property
-    def field_nullable(self):
+    def nullable(self):
         return self._field_nullable
 
     @property
