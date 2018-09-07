@@ -69,7 +69,7 @@ class Query(object):
         cur = self
         while cur._prev is not None:
             through_nodes_set.add(cur)
-            cur = cur._prev
+            cur = cur._prev.query
             if cur in through_nodes_set:
                 raise ValueError('Found loop inside linked query!')
         return cur
@@ -105,19 +105,19 @@ class Query(object):
         self._result_limit = 100
         self._skip_elements = 0
 
-    def build_query(self, __keep_going=False):
+    def build_query(self, _keep_going__=False):
         """ build leancloud query. """
-        cur = self._first if __keep_going is False else self
+        cur = self._first if _keep_going__ is False else self
         query = leancloud.Query(self._model.__lc_cls__)
 
         for condition in cur._conditions:
             condition.apply(query)
 
-        if self._next is not None:
-            if self._next.relation == QueryLinkRelation.RelationAnd:
-                query = leancloud.Query.and_(query, cur._next.query.build_query(__keep_going=True))
-            elif self._next.relation == QueryLinkRelation.RelationOr:
-                query = leancloud.Query.or_(query, cur._next.query.build_query(__keep_going=True))
+        if cur._next is not None:
+            if cur._next.relation == QueryLinkRelation.RelationAnd:
+                query = leancloud.Query.and_(query, cur._next.query.build_query(_keep_going__=True))
+            elif cur._next.relation == QueryLinkRelation.RelationOr:
+                query = leancloud.Query.or_(query, cur._next.query.build_query(_keep_going__=True))
 
         query.skip(self._skip_elements)
         query.limit(self._result_limit)
@@ -188,7 +188,11 @@ class Query(object):
         return Pages(self, page, size)
 
     def _build_next(self, rel):
-        cur = self._last
-        query = Query(self._model, cur)
-        cur._next = QueryLink(query, rel)
-        return query
+        curr_query = self._last
+        next_query = Query(self._model, curr_query)
+        prev_link = QueryLink(curr_query, rel)
+        next_query._prev = prev_link
+        next_link = QueryLink(next_query, rel)
+        curr_query._next = next_link
+
+        return next_query

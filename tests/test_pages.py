@@ -28,14 +28,11 @@ class TestModelQuery(TestCase):
         self.Model.commit_all(*self.models)
 
     def tearDown(self):
-        try:
-            while True:
-                result = leancloud.Query(self.cls_name).find()
-                if len(result) == 0:
-                    break
-                leancloud.Object.destroy_all(result)
-        except leancloud.LeanCloudError:
-            pass
+        while True:
+            result = leancloud.Query(self.cls_name).find()
+            if len(result) == 0:
+                break
+            leancloud.Object.destroy_all(result)
 
     def test_one_page(self):
         pages = self.Model.query().paginate(0, 100)

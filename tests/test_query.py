@@ -30,14 +30,11 @@ class TestModelQuery(TestCase):
             model.commit()
 
     def tearDown(self):
-        try:
-            while True:
-                result = leancloud.Query(self.cls_name).find()
-                if len(result) == 0:
-                    break
-                leancloud.Object.destroy_all(result)
-        except leancloud.LeanCloudError:
-            pass
+        while True:
+            result = leancloud.Query(self.cls_name).find()
+            if len(result) == 0:
+                break
+            leancloud.Object.destroy_all(result)
 
     def test_query_by_equation(self):
         model = self.Model.query().filter_by(name='Hi').first()
@@ -74,6 +71,24 @@ class TestModelQuery(TestCase):
         for result in results:
             self.assertGreaterEqual(result.age, 21)
 
+    def test_query_by_less_and_greater(self):
+        result = self.Model.query().filter(self.Model.age > 18).and_().filter(self.Model.age < 23).find()
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].age, 21)
+        self.assertEqual(result[0].name, 'Ho')
+
+    def test_query_by_less_or_greater(self):
+        result = self.Model.query().filter(self.Model.age < 21).or_().filter(self.Model.age > 21).find()
+        self.assertEqual(len(result), 2)
+        result = sorted(result, key=lambda model: model.age)
+        self.assertEqual(result[0].age, 18)
+        self.assertEqual(result[0].name, 'Hi')
+        self.assertEqual(result[1].age, 23)
+        self.assertEqual(result[1].name, 'He')
+
     def test_no_conditions(self):
         results = self.Model.query().find()
         self.assertEqual(len(results), 3)
+
+    def test_count(self):
+        self.assertEqual(self.Model.query().count(), 3)

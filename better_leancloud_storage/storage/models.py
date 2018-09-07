@@ -73,9 +73,6 @@ class Model(object, metaclass=ModelMeta):
         if isinstance(ret, Field):
             field_name = self._get_real_field_name(item)
 
-            if field_name is None:
-                raise AttributeError('Internal Error, Field not register correctly.')
-
             return self._lc_obj.get(field_name)
 
         return ret

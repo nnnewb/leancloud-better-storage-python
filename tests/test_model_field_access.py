@@ -14,14 +14,11 @@ class TestModelCreation(TestCase):
         setup()
 
     def tearDown(self):
-        try:
-            while True:
-                result = leancloud.Query(self.cls_name).find()
-                if len(result) == 0:
-                    break
-                leancloud.Object.destroy_all(result)
-        except leancloud.LeanCloudError:
-            pass
+        while True:
+            result = leancloud.Query(self.cls_name).find()
+            if len(result) == 0:
+                break
+            leancloud.Object.destroy_all(result)
 
     def test_simple_access(self):
         class ModelA(models.Model):

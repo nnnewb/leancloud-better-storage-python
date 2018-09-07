@@ -22,14 +22,11 @@ class TestModelQuery(TestCase):
         self.Model = ModelA
 
     def tearDown(self):
-        try:
-            while True:
-                result = leancloud.Query(self.cls_name).find()
-                if len(result) == 0:
-                    break
-                leancloud.Object.destroy_all(result)
-        except leancloud.LeanCloudError:
-            pass
+        while True:
+            result = leancloud.Query(self.cls_name).find()
+            if len(result) == 0:
+                break
+            leancloud.Object.destroy_all(result)
 
     def test_drop_without_exception(self):
         model = self.Model.create(name='Hello', age=10)
