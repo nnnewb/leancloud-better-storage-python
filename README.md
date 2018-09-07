@@ -3,9 +3,9 @@
 [![travis-ci](https://www.travis-ci.com/nnnewb/leancloud-better-storage-python.svg?branch=master)](https://www.travis-ci.com/nnnewb/leancloud-better-storage-python)
 [![codecov](https://codecov.io/gh/nnnewb/leancloud-better-storage-python/branch/master/graph/badge.svg)](https://codecov.io/gh/nnnewb/leancloud-better-storage-python)
 
-更优雅且pythonic的方式使用leancloud storage。
+更优雅且 pythonic 的方式使用 leancloud storage。
 
-> :construction: 施工中，文档也没有。有意参与或者疑问就开个issue，看到回复。
+> :construction: 施工中，文档也没有。有意参与或者疑问就开个 issue，看到回复。
 
 ## 快速开始
 
@@ -23,7 +23,7 @@ class Product(Model):
     field3 = Field(nullable=False, default=1)
 ```
 
-### CURD
+### CRUD
 
 #### 创建和保存
 
@@ -62,4 +62,3 @@ product.commit()
 product = Product.query().filter_by(name='FirstProduct').first()
 product.drop()
 ```
-
