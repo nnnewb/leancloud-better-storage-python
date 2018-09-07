@@ -2,49 +2,62 @@
 
 ![travis-ci](https://www.travis-ci.com/nnnewb/leancloud-better-storage-python.svg?branch=master)
 
-:construction_worker: 单元测试依赖于一个可用的leancloud-app，所以travis-ci的测试总是failed的，考虑后面怎么做个mock。
-
 更优雅且pythonic的方式使用leancloud storage。
 
-:construction: 施工中，文档也没有。有意参与或者疑问就开个issue，看到回复。
+> :construction: 施工中，文档也没有。有意参与或者疑问就开个issue，看到回复。
 
-## Quick Start
+## 快速开始
 
-一个简单的商品类声明和查询，分别用leancloud sdk和这个包写查询代码。
+以一系列最简单的例子来说明使用方式。
 
-```python
-# 使用 leancloud-sdk 编写
-from datetime import datetime
-from leancloud import Object, LeanCloudError
-
-Product = Object.extend('Product')
-try:
-    # 查找叫做 MyProduct，价格比10高，在18年8月1日之前创建的商品
-    product = Product.query.equal_to('name', 'MyProduct')\
-        .greater_than_or_equal_to('price', 10)\
-        .less_than_or_equal_to('createdAt', datetime(year=2018,month=8,day=1))\
-        .first()
-except LeanCloudError as exc:
-    if exc.code == 101:
-        product = None
-    else:
-        raise
-```
+### 模型声明
 
 ```python
-# 使用 better-leancloud-storage-python 编写
-from datetime import datetime
 from better_leancloud_storage.storage.models import Model
 from better_leancloud_storage.storage.fields import Field
 
 class Product(Model):
-    name = Field()
-    price = Field()
-    created_at =Field()
-
-product = Product.query()\
-    .filter_by(name='MyProduct')\
-    .filter(Product.price > 10,
-            Product.created_at < datetime(year=2018,month=8,day=1))\
-            .first()
+    name = Field('product_name', nullable=False)
+    price = Field(nullable=False)
 ```
+
+### CURD
+
+#### 创建和保存
+
+```python
+product = Product.create(name='FirstProduct',price=100)
+product.commit()
+```
+
+#### 查找
+
+代码仅演示查询语法
+
+```python
+products = Product\
+    .query()\
+    .filter_by(name='LastProduct', price=100)\
+    .and_()\
+    .filter(Product.other_field > 10, Product.other_field < 100)\
+    .or_()
+    .filter(Product.other_field < 10, Product.other_field > -10)\
+    .order_by(Product.created_at.asc)\
+    .find(skip=10, limit=100)  # also support first(), count()
+```
+
+### 更新
+
+```python
+product = Product.query().filter_by(name='FirstProduct').first()
+product.name = 'LastProduct'
+product.commit()
+```
+
+### 删除
+
+```python
+product = Product.query().filter_by(name='FirstProduct').first()
+product.drop()
+```
+
