@@ -1,7 +1,7 @@
 # leancloud-better-storage-python
 
-![travis-ci](https://www.travis-ci.com/nnnewb/leancloud-better-storage-python.svg?branch=master)
-![codecov](https://codecov.io/gh/nnnewb/leancloud-better-storage-python/branch/master/graphs/badge.svg?)
+[![travis-ci](https://www.travis-ci.com/nnnewb/leancloud-better-storage-python.svg?branch=master)](https://www.travis-ci.com/nnnewb/leancloud-better-storage-python)
+[![codecov](https://codecov.io/gh/nnnewb/leancloud-better-storage-python/branch/master/graph/badge.svg)](https://codecov.io/gh/nnnewb/leancloud-better-storage-python)
 
 更优雅且pythonic的方式使用leancloud storage。
 
