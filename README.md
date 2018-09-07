@@ -40,7 +40,7 @@ products = Product\
     .filter_by(name='LastProduct', price=100)\
     .and_()\
     .filter(Product.other_field > 10, Product.other_field < 100)\
-    .or_()
+    .or_()\
     .filter(Product.other_field < 10, Product.other_field > -10)\
     .order_by(Product.created_at.asc)\
     .find(skip=10, limit=100)  # also support first(), count()
