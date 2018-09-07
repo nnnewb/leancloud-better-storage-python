@@ -92,9 +92,16 @@ class Model(object, metaclass=ModelMeta):
 
     @classmethod
     def create(cls, **kwargs):
-        required_key_set = set(map(lambda item: item[0],
-                                   filter(lambda item: item[1].field_nullable is False,
-                                          cls.__fields__.items())))
+        default_key_set = {
+            field.field_name
+            for key, field in cls.__fields__.items()
+            if field.default is not None
+        }
+        required_key_set = {
+            key
+            for key, field in cls.__fields__.items()
+            if field.field_nullable is False and field.default is None
+        }
         input_key_set = set(kwargs.keys())
         fields_key_set = set(cls.__fields__.keys())
 
@@ -108,7 +115,10 @@ class Model(object, metaclass=ModelMeta):
             difference = required_key_set - input_key_set
             raise KeyError('Required fields {0}'.format(difference))
 
-        attr = {}
+        attr = {
+            key: cls.__fields__[key].default
+            for key in default_key_set
+        }
         for key, val in kwargs.items():
             field_name = cls._get_real_field_name(key)
             if field_name is None:

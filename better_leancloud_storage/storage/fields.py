@@ -24,6 +24,10 @@ class Field(object):
         return self._model
 
     @property
+    def default(self):
+        return self._field_default
+
+    @property
     def desc(self):
         return OrderBy(ResultElementOrder.Descending, self)
 

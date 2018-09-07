@@ -89,3 +89,14 @@ class TestModelCreation(TestCase):
             for i in range(10)
         ]
         ModelA.commit_all(*instances)
+
+    def test_create_with_default(self):
+        class ModelA(models.Model):
+            __lc_cls__ = self.cls_name
+
+            name = fields.Field(nullable=False, default='Hi')
+
+        model = ModelA.create()
+        self.assertEqual(model.name, 'Hi')
+        model.commit_all()
+        model.drop()
