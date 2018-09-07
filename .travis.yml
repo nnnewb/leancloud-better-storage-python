@@ -1,10 +1,12 @@
 language: python
 install:
   - pip install -r requirements.txt
+  - pip install codecov
 python:
   - 3.5
   - 3.6
 script:
   - python -m unittest discover
+  - codecov
 env:
-  - LEANCLOUD_APP_ID=MdYmVQcBImbvesIujDhqxByR-gzGzoHsz LEANCLOUD_APP_KEY=NwJgS8gDNuUclxaXVuuv395i
+  - LEANCLOUD_APP_ID=MdYmVQcBImbvesIujDhqxByR-gzGzoHsz LEANCLOUD_APP_KEY=NwJgS8gDNuUclxaXVuuv395i CODECOV_TOKEN="9c89b978-e55c-45ba-a0f1-1f67644e050a"
