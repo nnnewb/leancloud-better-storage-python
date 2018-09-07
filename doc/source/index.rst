@@ -10,7 +10,8 @@ Welcome to better-leancloud-storage-python's documentation!
    :maxdepth: 2
    :caption: Contents:
 
-
+   apiref
+   quickstart
 
 Indices and tables
 ==================
@@ -18,3 +19,4 @@ Indices and tables
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
+
