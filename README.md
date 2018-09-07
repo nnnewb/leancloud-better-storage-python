@@ -14,8 +14,8 @@
 ### 模型声明
 
 ```python
-from better_leancloud_storage.storage.models import Model
-from better_leancloud_storage.storage.fields import Field
+from leancloud_better_storage.storage.models import Model
+from leancloud_better_storage.storage.fields import Field
 
 class Product(Model):
     name = Field('product_name', nullable=False)

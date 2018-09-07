@@ -12,8 +12,8 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/nnnewb/better-leancloud-storage-python",
-    packages=['better_leancloud_storage'],
-    package_dir={'better_leancloud_storage': 'better_leancloud_storage'},
+    packages=['leancloud_better_storage'],
+    package_dir={'leancloud_better_storage': 'leancloud_better_storage'},
     install_requires=['leancloud==2.1.8', ],
     classifiers=[
         "Programming Language :: Python :: 3.5",

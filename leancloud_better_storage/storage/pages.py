@@ -9,7 +9,7 @@ class Pages(object):
         constructor of Pages class
 
         :param query: select query
-        :type query: better_leancloud_storage.storage.query.Query
+        :type query: leancloud_better_storage.storage.query.Query
         :param page: current page
         :type page: int
         :param size: elements size per page

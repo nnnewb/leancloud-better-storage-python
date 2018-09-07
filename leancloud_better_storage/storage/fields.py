@@ -1,5 +1,5 @@
-from better_leancloud_storage.storage.query import Condition, ConditionOperator
-from better_leancloud_storage.storage.order import OrderBy, ResultElementOrder
+from leancloud_better_storage.storage.query import Condition, ConditionOperator
+from leancloud_better_storage.storage.order import OrderBy, ResultElementOrder
 
 FIELD_AVAILABLE_TYPES = [int, float, str, list, dict]
 

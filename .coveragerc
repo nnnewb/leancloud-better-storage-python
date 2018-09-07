@@ -1,6 +1,6 @@
 [run]
 branch = True
-source = better_leancloud_storage
+source = leancloud_better_storage
 
 [report]
 exclude_lines =

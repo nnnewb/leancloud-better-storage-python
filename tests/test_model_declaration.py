@@ -1,5 +1,5 @@
 from unittest import TestCase
-from better_leancloud_storage.storage import models, fields
+from leancloud_better_storage.storage import models, fields
 
 
 class TestModelDeclaration(TestCase):

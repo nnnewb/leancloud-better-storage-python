@@ -1,25 +1,25 @@
 API reference
 ================
-.. automodule:: better_leancloud_storage
+.. automodule:: leancloud_better_storage
     :members:
 
-.. automodule:: better_leancloud_storage.storage
+.. automodule:: leancloud_better_storage.storage
     :members:
 
-.. automodule:: better_leancloud_storage.storage.err
+.. automodule:: leancloud_better_storage.storage.err
     :members:
 
-.. automodule:: better_leancloud_storage.storage.fields
+.. automodule:: leancloud_better_storage.storage.fields
     :members:
 
-.. automodule:: better_leancloud_storage.storage.models
+.. automodule:: leancloud_better_storage.storage.models
     :members:
 
-.. automodule:: better_leancloud_storage.storage.order
+.. automodule:: leancloud_better_storage.storage.order
     :members:
 
-.. automodule:: better_leancloud_storage.storage.pages
+.. automodule:: leancloud_better_storage.storage.pages
     :members:
 
-.. automodule:: better_leancloud_storage.storage.query
+.. automodule:: leancloud_better_storage.storage.query
     :members:

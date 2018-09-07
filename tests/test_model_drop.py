@@ -2,7 +2,7 @@ from unittest import TestCase
 
 import leancloud
 
-from better_leancloud_storage.storage import models, fields
+from leancloud_better_storage.storage import models, fields
 
 from tests.utils import setup
 

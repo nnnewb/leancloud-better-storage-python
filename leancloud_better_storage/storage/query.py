@@ -2,9 +2,9 @@ from enum import Enum
 
 import leancloud
 
-from better_leancloud_storage.storage.pages import Pages
-from better_leancloud_storage.storage.err import LeanCloudErrorCode
-from better_leancloud_storage.storage.order import ResultElementOrder
+from leancloud_better_storage.storage.pages import Pages
+from leancloud_better_storage.storage.err import LeanCloudErrorCode
+from leancloud_better_storage.storage.order import ResultElementOrder
 
 
 class ConditionOperator(Enum):
@@ -95,9 +95,9 @@ class Query(object):
         :param model: storage model
         :type model: type
         :param prev: previous linked query
-        :type prev: better_leancloud_storage.storage.query.QueryLink
+        :type prev: leancloud_better_storage.storage.query.QueryLink
         :param next_: next linked query
-        :type next_: better_leancloud_storage.storage.query.QueryLink
+        :type next_: leancloud_better_storage.storage.query.QueryLink
         """
         self._model = model
         self._prev = prev

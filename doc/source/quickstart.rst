@@ -8,8 +8,8 @@
 
 ::
 
-    from better_leancloud_storage.storage.models import Model
-    from better_leancloud_storage.storage.fields import Field
+    from leancloud_better_storage.storage.models import Model
+    from leancloud_better_storage.storage.fields import Field
 
     class MyModel(Model):
         name = Field()
