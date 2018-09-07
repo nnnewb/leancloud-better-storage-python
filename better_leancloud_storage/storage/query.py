@@ -4,7 +4,7 @@ import leancloud
 
 from better_leancloud_storage.storage.pages import Pages
 from .err import LeanCloudErrorCode
-from .order import OrderBy, ResultElementOrder
+from .order import ResultElementOrder
 
 
 class ConditionOperator(Enum):
