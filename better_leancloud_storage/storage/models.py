@@ -61,6 +61,10 @@ class Model(object, metaclass=ModelMeta):
     __lc_cls__ = ''
     __fields__ = {}
 
+    object_id = Field('objectId')
+    created_at = Field('createdAt')
+    updated_at = Field('updatedAt')
+
     @property
     def lc_object(self):
         return self._lc_obj
@@ -119,7 +123,7 @@ class Model(object, metaclass=ModelMeta):
             key: cls.__fields__[key].default
             for key in default_key_set
         }
-        for key, val in kwargs.items():
+        for key, _ in kwargs.items():
             field_name = cls._get_real_field_name(key)
             if field_name is None:
                 raise Exception('Internal error: field not register correctly.')
