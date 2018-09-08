@@ -17,11 +17,10 @@ setuptools.setup(
     url="https://github.com/nnnewb/better-leancloud-storage-python",
     packages=packages,
     install_requires=['leancloud==2.1.8', ],
+    license='LGPL',
     classifiers=[
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
-        'Natural Language :: Chinese'
-        "License :: OSI Approved :: LGPLv3 License",
         "Operating System :: OS Independent",
     ],
 )
