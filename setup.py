@@ -1,7 +1,10 @@
 import setuptools
+from setuptools import find_packages
 
 with open("README.md", "r", encoding='utf-8') as fh:
     long_description = fh.read()
+
+packages = find_packages(exclude=('tests',))
 
 setuptools.setup(
     name="better-leancloud-storage",
@@ -12,8 +15,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/nnnewb/better-leancloud-storage-python",
-    packages=['leancloud_better_storage'],
-    package_dir={'leancloud_better_storage': 'leancloud_better_storage'},
+    packages=packages,
     install_requires=['leancloud==2.1.8', ],
     classifiers=[
         "Programming Language :: Python :: 3.5",
