@@ -3,15 +3,21 @@
 [![travis-ci](https://www.travis-ci.com/nnnewb/leancloud-better-storage-python.svg?branch=master)](https://www.travis-ci.com/nnnewb/leancloud-better-storage-python)
 [![codecov](https://codecov.io/gh/nnnewb/leancloud-better-storage-python/branch/master/graph/badge.svg)](https://codecov.io/gh/nnnewb/leancloud-better-storage-python)
 
-更优雅且 pythonic 的方式使用 leancloud storage。
+better leancloud storage wrapper. Simple and lightweight.
 
-> :construction: 施工中，文档也没有。有意参与或者疑问就开个 issue，看到回复。
+## Installation
 
-## 快速开始
+install by `easy_install` or `pip`.
 
-以一系列最简单的例子来说明使用方式。
+```commandline
+$ pip install leancloud-better-storage
+```
 
-### 模型声明
+## Quick start
+
+Model declaration and query just like SQLAlchemy, see example below.
+
+### Model declaration
 
 ```python
 from leancloud_better_storage.storage.models import Model
@@ -23,32 +29,34 @@ class Product(Model):
     field3 = Field(nullable=False, default=1)
 ```
 
-### CRUD
+### CRUD operations
 
-#### 创建和保存
+#### Create
 
 ```python
 product = Product.create(name='FirstProduct',price=100)
 product.commit()
 ```
 
-#### 查找
-
-代码仅演示查询语法
+#### Read & Query
 
 ```python
-products = Product\
-    .query()\
-    .filter_by(name='LastProduct', price=100)\
-    .and_()\
-    .filter(Product.other_field > 10, Product.other_field < 100)\
-    .or_()\
-    .filter(Product.other_field < 10, Product.other_field > -10)\
-    .order_by(Product.created_at.asc)\
-    .find(skip=10, limit=100)  # also support first(), count()
+# find by simple equation
+products = Product.query().filter_by(name='product').find()
+# support >,<,>=,<=,==.but not support compare to another field.
+products = Product.query().filter(Product.price < 10).find()
+# support and_(), or_().
+products = Product.query().filter(Product.created_at > datetime(2018,8,1)).and_() \
+    .filter(Product.created_at < datetime(2018,9,1)).find()
+# find support limit and skip argument.
+products = Product.query().order_by(Product.price.desc).find(limit=10)
+# also support pagination, start from page 0 and 10 elements per page.
+pages = Product.query().paginate(0, 10)
+for page in pages:
+    print(page.items) # access elements
 ```
 
-### 更新
+### Update
 
 ```python
 product = Product.query().filter_by(name='FirstProduct').first()
@@ -56,7 +64,7 @@ product.name = 'LastProduct'
 product.commit()
 ```
 
-### 删除
+### Delete
 
 ```python
 product = Product.query().filter_by(name='FirstProduct').first()
