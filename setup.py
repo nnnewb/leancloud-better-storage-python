@@ -7,14 +7,14 @@ with open("README.md", "r", encoding='utf-8') as fh:
 packages = find_packages(exclude=('tests',))
 
 setuptools.setup(
-    name="better-leancloud-storage",
+    name="leancloud-better-storage",
     version="0.0.1",
     author="weak_ptr",
     author_email="weak_ptr@outlook.com",
-    description="better ORM wrapper of leancloud storage python sdk.",
+    description="Better ORM wrapper of leancloud storage python sdk.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/nnnewb/better-leancloud-storage-python",
+    url="https://github.com/nnnewb/leancloud-better-storage-python",
     packages=packages,
     install_requires=['leancloud==2.1.8', ],
     license='LGPL',
