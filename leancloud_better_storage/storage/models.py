@@ -121,7 +121,7 @@ class Model(object, metaclass=ModelMeta):
             raise KeyError('Required fields {0}'.format(difference))
 
         attr = {
-            key: cls.__fields__[key].default
+            key: cls.__fields__[key].default() if callable(cls.__fields__[key].default) else cls.__fields__[key].default
             for key in default_key_set
         }
         for key, _ in kwargs.items():

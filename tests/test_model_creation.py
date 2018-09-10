@@ -1,4 +1,5 @@
 from unittest import TestCase
+from uuid import uuid1
 
 import leancloud
 
@@ -100,3 +101,12 @@ class TestModelCreation(TestCase):
         self.assertEqual(model.name, 'Hi')
         model.commit_all()
         model.drop()
+
+    def test_create_with_default_initializer(self):
+        class MyModel(models.Model):
+            __lc_cls__ = 'TestModel'
+
+            name = models.Field(default=lambda: '12345')
+
+        model = MyModel.create()
+        self.assertEqual(model.name, '12345')
