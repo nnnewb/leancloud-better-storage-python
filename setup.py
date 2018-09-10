@@ -19,6 +19,8 @@ setuptools.setup(
     install_requires=['leancloud==2.1.8', ],
     license='LGPL',
     classifiers=[
+        "Development Status :: 3 - Alpha",
+        "License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)",
         "Programming Language :: Python :: 3.5",
         "Programming Language :: Python :: 3.6",
         "Operating System :: OS Independent",
