@@ -98,7 +98,7 @@ class Model(object, metaclass=ModelMeta):
     @classmethod
     def create(cls, **kwargs):
         default_key_set = {
-            field.field_name
+            key
             for key, field in cls.__fields__.items()
             if field.default is not None
         }
@@ -121,7 +121,9 @@ class Model(object, metaclass=ModelMeta):
             raise KeyError('Required fields {0}'.format(difference))
 
         attr = {
-            key: cls.__fields__[key].default() if callable(cls.__fields__[key].default) else cls.__fields__[key].default
+            cls.__fields__[key].field_name: cls.__fields__[key].default()
+            if callable(cls.__fields__[key].default)
+            else cls.__fields__[key].default
             for key in default_key_set
         }
         for key, _ in kwargs.items():

@@ -110,3 +110,11 @@ class TestModelCreation(TestCase):
 
         model = MyModel.create()
         self.assertEqual(model.name, '12345')
+
+    def test_create_named_field_with_default(self):
+        class MyModel(models.Model):
+            hi = models.Field('name', default='Hello')
+
+        model = MyModel.create()
+        model.commit()
+        model.drop()
