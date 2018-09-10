@@ -8,7 +8,7 @@ packages = find_packages(exclude=('tests',))
 
 setuptools.setup(
     name="leancloud-better-storage",
-    version="0.1.1",
+    version="0.1.2",
     author="weak_ptr",
     author_email="weak_ptr@outlook.com",
     description="Better ORM wrapper of leancloud storage python sdk.",
