@@ -27,6 +27,7 @@ class Product(Model):
     name = Field('product_name', nullable=False)
     price = Field(nullable=False)
     field3 = Field(nullable=False, default=1)
+    field4 = Field()
 ```
 
 ### CRUD operations
@@ -36,6 +37,9 @@ class Product(Model):
 ```python
 product = Product.create(name='FirstProduct',price=100)
 product.commit()
+
+# v0.1.3 now default null value
+assert product.field4 is None
 ```
 
 #### Read & Query
