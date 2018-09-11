@@ -97,40 +97,26 @@ class Model(object, metaclass=ModelMeta):
 
     @classmethod
     def create(cls, **kwargs):
-        default_key_set = {
-            key
-            for key, field in cls.__fields__.items()
-            if field.default is not None
-        }
-        required_key_set = {
-            key
-            for key, field in cls.__fields__.items()
-            if field.nullable is False and field.default is None
-        }
-        input_key_set = set(kwargs.keys())
-        fields_key_set = set(cls.__fields__.keys())
-
-        # if input key has any key not inside field declaration
-        if input_key_set.issubset(fields_key_set) is False:
-            difference = input_key_set - fields_key_set
-            raise KeyError('Unknown fields {0}.'.format(difference))
-
-        # if input key not contains all required keys
-        if required_key_set != set(kwargs.keys()) and required_key_set.issubset(kwargs.keys()) is False:
-            difference = required_key_set - input_key_set
-            raise KeyError('Required fields {0}'.format(difference))
+        if not {*kwargs.keys()}.issubset({*cls.__fields__.keys()}):
+            raise KeyError('Unknown field name {0}'.format({*kwargs.keys()} - {*cls.__fields__.keys()}))
 
         attr = {
-            cls.__fields__[key].field_name: cls.__fields__[key].default()
-            if callable(cls.__fields__[key].default)
-            else cls.__fields__[key].default
-            for key in default_key_set
+            field.field_name: field.default() if callable(field.default) else field.default
+            for key, field in cls.__fields__.items()
+            if field.nullable or field.default
         }
-        for key, _ in kwargs.items():
-            field_name = cls._get_real_field_name(key)
-            if field_name is None:
-                raise Exception('Internal error: field not register correctly.')
-            attr[field_name] = kwargs[key]
+
+        for key, val in kwargs.items():
+            real_name = cls._get_real_field_name(key)
+            attr[real_name] = val
+
+        missing_fields = {
+            key
+            for key, field in cls.__fields__.items()
+            if field.nullable is False and field.default is None and field.field_name not in attr
+        }
+        if len(missing_fields) != 0:
+            raise KeyError('Missing required field {0}.'.format(missing_fields))
 
         lc_obj = leancloud.Object.create(cls.__lc_cls__, **attr)
         return cls(lc_obj)
