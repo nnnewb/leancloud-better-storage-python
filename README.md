@@ -1,5 +1,6 @@
 # leancloud-better-storage-python
 
+[![PyPI version](https://badge.fury.io/py/leancloud-better-storage.svg)](https://badge.fury.io/py/leancloud-better-storage)
 [![travis-ci](https://www.travis-ci.com/nnnewb/leancloud-better-storage-python.svg?branch=master)](https://www.travis-ci.com/nnnewb/leancloud-better-storage-python)
 [![codecov](https://codecov.io/gh/nnnewb/leancloud-better-storage-python/branch/master/graph/badge.svg)](https://codecov.io/gh/nnnewb/leancloud-better-storage-python)
 
