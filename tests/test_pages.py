@@ -50,3 +50,7 @@ class TestModelQuery(TestCase):
             c += 1
             ca += len(p.items)
         self.assertEqual(c, 10)
+
+    def test_total_pages(self):
+        pages = self.Model.query().paginate(0, 10)
+        self.assertEqual(pages.total_pages, 10)

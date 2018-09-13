@@ -19,6 +19,7 @@ class Pages(object):
         self._page = page
         self._size = size
         self._content_cache = []
+        self._total = None
 
     @property
     def element_offset(self):
@@ -32,6 +33,12 @@ class Pages(object):
             query = deepcopy(self._query)
             self._content_cache = query.find(self.element_offset, self._size)
         return self._content_cache
+
+    @property
+    def total_pages(self):
+        if self._total is None:
+            self._total = self._query.count() / self._size
+        return self._total
 
     def __iter__(self):
         """ get iterator """
