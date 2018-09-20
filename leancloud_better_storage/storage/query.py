@@ -45,6 +45,7 @@ class Condition(object):
 
     def apply(self, query):
         self.operator_mapping[self._operator](query, self._operand_left.field_name, self._operand_right)
+        return query
 
 
 class QueryLinkRelation(Enum):
@@ -112,10 +113,13 @@ class Query(object):
     def build_query(self, _keep_going__=False):
         """ build leancloud query. """
         cur = self._first if _keep_going__ is False else self
-        query = leancloud.Query(self._model.__lc_cls__)
-
-        for condition in cur._conditions:
-            condition.apply(query)
+        queries = [*map(lambda cond: cond.apply(leancloud.Query(self._model.__lc_cls__)), cur._conditions)]
+        if len(queries) >= 2:
+            query = leancloud.Query.and_(*queries)
+        elif len(queries) >= 1:
+            query, = queries
+        else:
+            query = leancloud.Query(self._model.__lc_cls__)
 
         if cur._next is not None:
             if cur._next.relation == QueryLinkRelation.RelationAnd:

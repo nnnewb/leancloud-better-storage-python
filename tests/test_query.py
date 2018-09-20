@@ -90,6 +90,10 @@ class TestModelQuery(TestCase):
         result = self.Model.query().filter(self.Model.age != 21).find()
         self.assertEqual(len(result), 2)
 
+    def test_query_single_field_multi_condition(self):
+        result = self.Model.query().filter(self.Model.age != 21, self.Model.age != 18).find()
+        self.assertEqual(len(result), 1)
+
     def test_no_conditions(self):
         results = self.Model.query().find()
         self.assertEqual(len(results), 3)
