@@ -44,6 +44,9 @@ class Field(object):
     def __eq__(self, other):
         return Condition(self, ConditionOperator.Equal, other)
 
+    def __ne__(self, other):
+        return Condition(self, ConditionOperator.NotEqual, other)
+
     def __lt__(self, other):
         return Condition(self, ConditionOperator.LessThan, other)
 

@@ -9,6 +9,7 @@ from leancloud_better_storage.storage.order import ResultElementOrder
 
 class ConditionOperator(Enum):
     Equal = '=='
+    NotEqual = '!='
     GreaterThan = '>'
     GreaterThanOrEqualTo = '>='
     LessThan = '<'
@@ -21,7 +22,8 @@ class Condition(object):
         ConditionOperator.GreaterThan: lambda q, l, r: q.greater_than(l, r),
         ConditionOperator.GreaterThanOrEqualTo: lambda q, l, r: q.greater_than_or_equal_to(l, r),
         ConditionOperator.LessThan: lambda q, l, r: q.less_than(l, r),
-        ConditionOperator.LessThanOrEqualTo: lambda q, l, r: q.less_than_or_equal_to(l, r)
+        ConditionOperator.LessThanOrEqualTo: lambda q, l, r: q.less_than_or_equal_to(l, r),
+        ConditionOperator.NotEqual: lambda q, l, r: q.not_equal_to(l, r),
     }
 
     def __init__(self, operand_left, operator, operand_right):

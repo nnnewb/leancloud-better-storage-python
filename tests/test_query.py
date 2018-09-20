@@ -86,6 +86,10 @@ class TestModelQuery(TestCase):
         self.assertEqual(result[1].age, 23)
         self.assertEqual(result[1].name, 'He')
 
+    def test_query_by_not_equal(self):
+        result = self.Model.query().filter(self.Model.age != 21).find()
+        self.assertEqual(len(result), 2)
+
     def test_no_conditions(self):
         results = self.Model.query().find()
         self.assertEqual(len(results), 3)
