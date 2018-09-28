@@ -94,6 +94,18 @@ class TestModelQuery(TestCase):
         result = self.Model.query().filter(self.Model.age != 21, self.Model.age != 18).find()
         self.assertEqual(len(result), 1)
 
+    def test_query_by_contains(self):
+        model = self.Model.query().filter(self.Model.name.contains('i')).first()
+        self.assertEqual(model.name, 'Hi')
+        model = self.Model.query().filter(self.Model.name.contains('o')).first()
+        self.assertEqual(model.name, 'Ho')
+        model = self.Model.query().filter(self.Model.name.contains('e')).first()
+        self.assertEqual(model.name, 'He')
+
+        self.assertEqual(len(self.Model.query().filter(self.Model.name.contains('i')).find()), 1)
+        self.assertEqual(len(self.Model.query().filter(self.Model.name.contains('o')).find()), 1)
+        self.assertEqual(len(self.Model.query().filter(self.Model.name.contains('e')).find()), 1)
+
     def test_no_conditions(self):
         results = self.Model.query().find()
         self.assertEqual(len(results), 3)

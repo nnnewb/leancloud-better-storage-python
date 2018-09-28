@@ -1,7 +1,7 @@
 from leancloud_better_storage.storage.query import Condition, ConditionOperator
 from leancloud_better_storage.storage.order import OrderBy, ResultElementOrder
 
-FIELD_AVAILABLE_TYPES = [int, float, str, list, dict]
+FIELD_AVAILABLE_TYPES = [int, float, str, list, dict, None]
 
 
 class Field(object):
@@ -40,6 +40,8 @@ class Field(object):
         self._field_nullable = nullable
         self._field_default = default
         self._field_type = type_
+        if self._field_type not in FIELD_AVAILABLE_TYPES:
+            raise ValueError('required field type {0} not available!'.format(repr(self._field_type)))
 
     def __eq__(self, other):
         return Condition(self, ConditionOperator.Equal, other)
@@ -58,3 +60,12 @@ class Field(object):
 
     def __gt__(self, other):
         return Condition(self, ConditionOperator.GreaterThan, other)
+
+    def contains(self, sub):
+        if isinstance(sub, str):
+            if self._field_type is not str and self._field_type is not None:
+                raise ValueError('contains condition only available in string field.')
+            else:
+                return Condition(self, ConditionOperator.Contains, sub)
+        else:
+            raise ValueError('contains condition only available with string and string field.')
