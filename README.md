@@ -75,3 +75,7 @@ product.commit()
 product = Product.query().filter_by(name='FirstProduct').first()
 product.drop()
 ```
+
+## Update log
+
+* 0.1.7 修复初始值 null 覆盖了存储服务生成字段值的问题。
