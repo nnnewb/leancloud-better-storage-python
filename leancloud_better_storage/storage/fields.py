@@ -4,6 +4,9 @@ from leancloud_better_storage.storage.order import OrderBy, ResultElementOrder
 FIELD_AVAILABLE_TYPES = [int, float, str, list, dict, None]
 
 
+class undefined: ...
+
+
 class Field(object):
 
     @property
@@ -34,7 +37,7 @@ class Field(object):
     def asc(self):
         return OrderBy(ResultElementOrder.Ascending, self)
 
-    def __init__(self, name=None, nullable=True, default=None, type_=None):
+    def __init__(self, name=None, nullable=True, default=undefined, type_=None):
         self._model = None
         self._field_name = name
         self._field_nullable = nullable

@@ -1,5 +1,4 @@
 from unittest import TestCase
-from uuid import uuid1
 
 import leancloud
 
@@ -118,3 +117,18 @@ class TestModelCreation(TestCase):
         model = MyModel.create()
         model.commit()
         model.drop()
+
+    def test_initialize_field_with_undefined(self):
+        class MyModel(models.Model):
+            testInitializeFieldWithUndefinedField = models.Field()
+
+        class MyModel2(models.Model):
+            testInitializeWithNullField = models.Field(default=None)
+
+        m = MyModel.create()
+        m.commit()
+        assert 'testInitializeFieldWithUndefinedField' not in m.lc_object._attributes
+
+        m2 = MyModel2.create()
+        m2.commit()
+        assert 'testInitializeWithNullField' in m2.lc_object._attributes

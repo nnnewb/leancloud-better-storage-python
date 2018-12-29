@@ -3,7 +3,7 @@ from copy import deepcopy
 import leancloud
 
 from leancloud_better_storage.storage.query import Query
-from leancloud_better_storage.storage.fields import Field
+from leancloud_better_storage.storage.fields import Field, undefined
 
 
 class ModelMeta(type):
@@ -102,7 +102,7 @@ class Model(object, metaclass=ModelMeta):
 
         attr = {
             field.field_name: field.default() if callable(field.default) else field.default
-            for key, field in cls.__fields__.items()
+            for field in filter(lambda v: v.default is not undefined, cls.__fields__.values())
             if field.nullable or field.default
         }
 
@@ -113,7 +113,7 @@ class Model(object, metaclass=ModelMeta):
         missing_fields = {
             key
             for key, field in cls.__fields__.items()
-            if field.nullable is False and field.default is None and field.field_name not in attr
+            if field.nullable is False and field.default in (None, undefined) and field.field_name not in attr
         }
         if len(missing_fields) != 0:
             raise KeyError('Missing required field {0}.'.format(missing_fields))
