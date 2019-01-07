@@ -60,7 +60,7 @@ use `filter` and/or `filter_by` to select records.
 
 `filter` support more human readable condition selection.
 
-- operators like `>`, `<`, `>=`, `<=`, `==` between fields.
+- `>`, `<`, `>=`, `<=`, `==` compare field with some value. Not supprot compare between fields in same or not same model.
 - `contains` simple pattern match for string field.
 - `and_`, `or_` between two or more queries.
 
