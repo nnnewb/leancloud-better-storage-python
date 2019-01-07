@@ -128,7 +128,9 @@ class TestModelCreation(TestCase):
         m = MyModel.create()
         m.commit()
         assert 'testInitializeFieldWithUndefinedField' not in m.lc_object._attributes
+        assert m.testInitializeFieldWithUndefinedField is None
 
         m2 = MyModel2.create()
         m2.commit()
         assert 'testInitializeWithNullField' in m2.lc_object._attributes
+        assert m2.testInitializeWithNullField is None
