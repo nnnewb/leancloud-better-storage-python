@@ -91,11 +91,7 @@ for page in pages:
 
 ### Update
 
-Not support simple update by conditions yet. Should be coming soon.
-
-BY now you should find the objects that you want modify and assign new value.
-
-OR, you can juse use leancloud SDK update query.
+You can update record by assign new value and commit change.
 
 ```python
 product = Product.query().filter_by(name='FirstProduct').first()
@@ -105,11 +101,7 @@ product.commit()
 
 ### Delete
 
-> Leancloud does not support delete records by conditions.
-> see official document [here](https://leancloud.cn/docs/cql_guide.html#hash-1335458389) and [here](https://leancloud.cn/docs/dotnet_guide.html#hash664090316)
-> leancloud 暂不支持按条件删除记录。
-
-you can use `drop` for single record or `Model.drop_all` for list of records.
+`drop` method will delete record and set object invalid. Use `drop_all` for bulk operation.
 
 ```python
 product = Product.query().filter_by(name='FirstProduct').first()
@@ -119,6 +111,16 @@ products = Product.query().filter_by().find()
 Product.drop_all(products)
 ```
 
-## Update log
+### Known limit
+
+Some bulk modification/deletion does not support execute with conditions.
+It's limited by leancloud storage service.
+For more detail, see document below.
+
+- [python guide - bulk operation](https://leancloud.cn/docs/leanstorage_guide-python.html#hash787692837)
+- [CQL guide - update](https://leancloud.cn/docs/cql_guide.html#hash-838846263)
+- [CQL guide - delete](https://leancloud.cn/docs/cql_guide.html#hash-1335458389)
+
+## Change log
 
 - 0.1.7 修复初始值 null 覆盖了存储服务生成字段值的问题。
