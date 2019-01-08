@@ -105,7 +105,9 @@ product.commit()
 
 ### Delete
 
-Not support delete records by conditions yet. Should be coming soon.
+> Leancloud does not support delete records by conditions.
+> see official document [here](https://leancloud.cn/docs/cql_guide.html#hash-1335458389) and [here](https://leancloud.cn/docs/dotnet_guide.html#hash664090316)
+> leancloud 暂不支持按条件删除记录。
 
 you can use `drop` for single record or `Model.drop_all` for list of records.
 
