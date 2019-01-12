@@ -75,3 +75,9 @@ class Field(object):
                 return Condition(self, ConditionOperator.Contains, sub)
         else:
             raise ValueError('contains condition only available with string and string field.')
+
+    def to_python_value(self, value):
+        return value
+
+    def to_leancloud_value(self, value):
+        return value

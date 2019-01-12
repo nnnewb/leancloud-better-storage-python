@@ -62,6 +62,8 @@ class Model(object, metaclass=ModelMeta):
     __lc_cls__ = ''
     __fields__ = {}
 
+    __data__ = {}
+
     object_id = Field('objectId')
     created_at = Field('createdAt')
     updated_at = Field('updatedAt')
@@ -77,17 +79,19 @@ class Model(object, metaclass=ModelMeta):
         ret = super(Model, self).__getattribute__(item)
         if isinstance(ret, Field):
             field_name = self._get_real_field_name(item)
-
-            return self._lc_obj.get(field_name)
-
+            if field_name not in self.__data__:
+                result = self._lc_obj.get(field_name)
+                self.__data__[field_name] = ret.to_python_value(result)
+            return self.__data__[field_name]
         return ret
 
     def __setattr__(self, key, value):
-        field_name = self._get_real_field_name(key)
-        if field_name is None:
+        field = self.__fields__.get(key)
+        if field:
+            self.__data__[field.field_name] = value
+            self._lc_obj.set(field.field_name, field.to_leancloud_value(value))
+        else:
             return super(Model, self).__setattr__(key, value)
-
-        self._lc_obj.set(field_name, value)
 
     @classmethod
     def _get_real_field_name(cls, name):
@@ -118,7 +122,8 @@ class Model(object, metaclass=ModelMeta):
         if len(missing_fields) != 0:
             raise KeyError('Missing required field {0}.'.format(missing_fields))
 
-        lc_obj = leancloud.Object.create(cls.__lc_cls__, **attr)
+        data = {k: cls.__fields__[k].to_leancloud_value(v) for (k, v) in attr.items()}
+        lc_obj = leancloud.Object.create(cls.__lc_cls__, **data)
         return cls(lc_obj)
 
     def commit(self):
