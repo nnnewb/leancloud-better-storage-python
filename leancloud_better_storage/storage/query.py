@@ -15,6 +15,7 @@ class ConditionOperator(Enum):
     LessThan = '<'
     LessThanOrEqualTo = '<='
     Contains = 'in'
+    ContainedIn = 'in_'
 
 
 class Condition(object):
@@ -26,6 +27,7 @@ class Condition(object):
         ConditionOperator.LessThanOrEqualTo: lambda q, l, r: q.less_than_or_equal_to(l, r),
         ConditionOperator.NotEqual: lambda q, l, r: q.not_equal_to(l, r),
         ConditionOperator.Contains: lambda q, l, r: q.contains(l, r),
+        ConditionOperator.ContainedIn: lambda q, l, r: q.contained_in(l, r),
     }
 
     def __init__(self, operand_left, operator, operand_right):
