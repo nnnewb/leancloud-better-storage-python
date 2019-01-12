@@ -62,7 +62,7 @@ class Model(object, metaclass=ModelMeta):
     __lc_cls__ = ''
     __fields__ = {}
 
-    __data__ = {}
+    __data__ = None
 
     object_id = Field('objectId')
     created_at = Field('createdAt')
@@ -74,6 +74,7 @@ class Model(object, metaclass=ModelMeta):
 
     def __init__(self, lc_obj=None):
         self._lc_obj = lc_obj
+        self.__data__ = {}
 
     def __getattribute__(self, item):
         ret = super(Model, self).__getattribute__(item)
