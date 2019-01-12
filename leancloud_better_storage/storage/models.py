@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 import leancloud
+from leancloud import operation
 
 from leancloud_better_storage.storage.query import Query
 from leancloud_better_storage.storage.fields import Field, undefined
@@ -82,6 +83,8 @@ class Model(object, metaclass=ModelMeta):
             field_name = self._get_real_field_name(item)
             if field_name not in self.__data__:
                 result = self._lc_obj.get(field_name)
+                if result is None:
+                    return ret.default
                 self.__data__[field_name] = ret.to_python_value(result)
             return self.__data__[field_name]
         return ret
@@ -89,8 +92,13 @@ class Model(object, metaclass=ModelMeta):
     def __setattr__(self, key, value):
         field = self.__fields__.get(key)
         if field:
-            self.__data__[field.field_name] = value
-            self._lc_obj.set(field.field_name, field.to_leancloud_value(value))
+            if isinstance(value, operation.BaseOp):
+                if field.field_name in self.__data__:
+                    del self.__data__[field.field_name]
+                self._lc_obj.set(field.field_name, value)
+            else:
+                self.__data__[field.field_name] = value
+                self._lc_obj.set(field.field_name, field.to_leancloud_value(value))
         else:
             return super(Model, self).__setattr__(key, value)
 
