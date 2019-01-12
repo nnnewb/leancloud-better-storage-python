@@ -64,6 +64,9 @@ class Field(object):
     def __gt__(self, other):
         return Condition(self, ConditionOperator.GreaterThan, other)
 
+    def in_(self, other):
+        return Condition(self, ConditionOperator.ContainedIn, other)
+
     def contains(self, sub):
         if isinstance(sub, str):
             if self._field_type is not str and self._field_type is not None:
