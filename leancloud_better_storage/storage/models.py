@@ -16,6 +16,7 @@ class ModelMeta(type):
     """
     _fields_key = '__fields__'
     _lc_cls_key = '__lc_cls__'
+    __classes__ = {}
 
     @classmethod
     def merge_parent_fields(mcs, bases):
@@ -56,6 +57,7 @@ class ModelMeta(type):
         # Tag fields with created model class and its __lc_cls__.
         created = type.__new__(mcs, name, bases, attr)
         mcs.tag_all_fields(created, created.__fields__)
+        mcs.__classes__[name] = created
         return created
 
 
