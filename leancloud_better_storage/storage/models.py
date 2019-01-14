@@ -137,8 +137,9 @@ class Model(object, metaclass=ModelMeta):
         lc_obj = leancloud.Object.create(cls.__lc_cls__, **data)
         return cls(lc_obj)
 
-    def commit(self):
-        self._lc_obj.save()
+    def commit(self, **kwargs):
+        self._lc_obj.save(**kwargs)
+        self.__data__ = {}
         return self
 
     @classmethod
