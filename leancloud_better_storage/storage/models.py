@@ -165,3 +165,7 @@ class Model(object, metaclass=ModelMeta):
     @classmethod
     def query(cls):
         return Query(cls)
+
+    @classmethod
+    def create_without_data(cls, object_id):
+        return cls(leancloud.Object.extend(cls.__lc_cls__).create_without_data(object_id))
