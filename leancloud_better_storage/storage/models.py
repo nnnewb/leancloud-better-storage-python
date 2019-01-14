@@ -61,6 +61,16 @@ class ModelMeta(type):
         return created
 
 
+class Pointer(dict):
+    def __init__(self, className, objectId):
+        self['__type'] = 'Pointer'
+        self['className'] = className
+        self['objectId'] = objectId
+
+
+
+
+
 class Model(object, metaclass=ModelMeta):
     __lc_cls__ = ''
     __fields__ = {}
@@ -169,3 +179,10 @@ class Model(object, metaclass=ModelMeta):
     @classmethod
     def create_without_data(cls, object_id):
         return cls(leancloud.Object.extend(cls.__lc_cls__).create_without_data(object_id))
+
+    @classmethod
+    def createPointer(cls, object_id):
+        return Pointer(cls.__lc_cls__, object_id)
+
+    def toPointer(self):
+        return Pointer(self.__lc_cls__, self.object_id)
