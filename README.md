@@ -8,6 +8,10 @@ better leancloud storage wrapper. Simple and lightweight.
 
 > Sorry for my bad grammar and spell :)
 
+## Compatibility
+
+Compatible with Python3.5+ , no Python2 support.
+
 ## Installation
 
 install by `easy_install` or `pip`.

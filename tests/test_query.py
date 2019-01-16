@@ -122,3 +122,11 @@ class TestModelQuery(TestCase):
         model = self.Model.query().order_by(self.Model.age.desc).first()
         self.assertEqual(model.age, 23)
         self.assertEqual(model.name, 'He')
+
+    def test_condition_in(self):
+        model = self.Model.query().filter(self.Model.name.in_(['Hi', 'hi', 'HI'])).first()
+        self.assertEqual(model.name, 'Hi')
+        self.assertEqual(model.age, 18)
+
+        model = self.Model.query().filter(self.Model.name.in_(['Hii', 'hii', 'HII'])).first()
+        self.assertIsNone(model)
