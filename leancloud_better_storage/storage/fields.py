@@ -69,28 +69,10 @@ class Field(object):
         return Condition(self, ConditionOperator.ContainedIn, other)
 
     def contains(self, sub):
-        if isinstance(sub, str):
-            if self._field_type is not str and self._field_type is not None:
-                raise ValueError('contains condition only available in string field.')
-            else:
-                return Condition(self, ConditionOperator.Contains, sub)
-        else:
-            raise ValueError('contains condition only available with string and string field.')
+        return Condition(self, ConditionOperator.Contains, sub)
 
     def regex(self, pattern):
-        if isinstance(pattern, str):
-            if self._field_type is not str and self._field_type is not None:
-                raise ValueError('regex condition only available in string field.')
-            else:
-                return Condition(self, ConditionOperator.Regex, pattern)
-        else:
-            raise ValueError('regex condition only available with string and string field.')
+        return Condition(self, ConditionOperator.Regex, pattern)
 
     def startswith(self, pattern):
-        if isinstance(pattern, str):
-            if self._field_type is not str and self._field_type is not None:
-                raise ValueError('startswith condition only available in string field.')
-            else:
-                return Condition(self, ConditionOperator.StartsWith, pattern)
-        else:
-            raise ValueError('startswith condition only available with string and string field.')
+        return Condition(self, ConditionOperator.StartsWith, pattern)
