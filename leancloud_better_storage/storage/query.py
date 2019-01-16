@@ -113,6 +113,7 @@ class Query(object):
         self._result_limit = 100
         self._skip_elements = 0
         self._order_by_elements = []
+        self._includes = []
 
     def build_query(self, _keep_going__=False):
         """ build leancloud query. """
@@ -136,6 +137,15 @@ class Query(object):
                 query.add_ascending(order_by.field.field_name)
             elif order_by.order == ResultElementOrder.Descending:
                 query.add_descending(order_by.field.field_name)
+
+        if self._includes:
+            includes = []
+            for i in self._includes:
+                if isinstance(i, str):
+                    includes.append(i)
+                elif hasattr(i, 'field_name'):
+                    includes.append(i.field_name)
+            query = query.include(includes)
 
         query.skip(self._skip_elements)
         query.limit(self._result_limit)
@@ -165,6 +175,10 @@ class Query(object):
     def or_(self):
         """ create new query and linked current query with or. """
         return self._build_next(QueryLinkRelation.RelationOr)
+
+    def includes(self, *args):
+        self._includes = args
+        return self
 
     def first(self):
         """ get first object match conditions. """

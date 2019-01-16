@@ -1,6 +1,7 @@
 from copy import deepcopy
 
 import leancloud
+from leancloud import operation
 
 from leancloud_better_storage.storage.query import Query
 from leancloud_better_storage.storage.fields import Field, undefined
@@ -15,6 +16,7 @@ class ModelMeta(type):
     """
     _fields_key = '__fields__'
     _lc_cls_key = '__lc_cls__'
+    __classes__ = {}
 
     @classmethod
     def merge_parent_fields(mcs, bases):
@@ -55,12 +57,25 @@ class ModelMeta(type):
         # Tag fields with created model class and its __lc_cls__.
         created = type.__new__(mcs, name, bases, attr)
         mcs.tag_all_fields(created, created.__fields__)
+        mcs.__classes__[name] = created
         return created
+
+
+class Pointer(dict):
+    def __init__(self, className, objectId):
+        self['__type'] = 'Pointer'
+        self['className'] = className
+        self['objectId'] = objectId
+
+
+
 
 
 class Model(object, metaclass=ModelMeta):
     __lc_cls__ = ''
     __fields__ = {}
+
+    __data__ = None
 
     object_id = Field('objectId')
     created_at = Field('createdAt')
@@ -72,22 +87,32 @@ class Model(object, metaclass=ModelMeta):
 
     def __init__(self, lc_obj=None):
         self._lc_obj = lc_obj
+        self.__data__ = {}
 
     def __getattribute__(self, item):
         ret = super(Model, self).__getattribute__(item)
         if isinstance(ret, Field):
             field_name = self._get_real_field_name(item)
-
-            return self._lc_obj.get(field_name)
-
+            if field_name not in self.__data__:
+                result = self._lc_obj.get(field_name)
+                if result is None:
+                    return ret.default
+                self.__data__[field_name] = ret.to_python_value(result)
+            return self.__data__[field_name]
         return ret
 
     def __setattr__(self, key, value):
-        field_name = self._get_real_field_name(key)
-        if field_name is None:
+        field = self.__fields__.get(key)
+        if field:
+            if isinstance(value, operation.BaseOp):
+                if field.field_name in self.__data__:
+                    del self.__data__[field.field_name]
+                self._lc_obj.set(field.field_name, value)
+            else:
+                self.__data__[field.field_name] = value
+                self._lc_obj.set(field.field_name, field.to_leancloud_value(value))
+        else:
             return super(Model, self).__setattr__(key, value)
-
-        self._lc_obj.set(field_name, value)
 
     @classmethod
     def _get_real_field_name(cls, name):
@@ -118,11 +143,13 @@ class Model(object, metaclass=ModelMeta):
         if len(missing_fields) != 0:
             raise KeyError('Missing required field {0}.'.format(missing_fields))
 
-        lc_obj = leancloud.Object.create(cls.__lc_cls__, **attr)
+        data = {k: cls.__fields__[k].to_leancloud_value(v) for (k, v) in attr.items()}
+        lc_obj = leancloud.Object.create(cls.__lc_cls__, **data)
         return cls(lc_obj)
 
-    def commit(self):
-        self._lc_obj.save()
+    def commit(self, **kwargs):
+        self._lc_obj.save(**kwargs)
+        self.__data__ = {}
         return self
 
     @classmethod
@@ -148,3 +175,14 @@ class Model(object, metaclass=ModelMeta):
     @classmethod
     def query(cls):
         return Query(cls)
+
+    @classmethod
+    def create_without_data(cls, object_id):
+        return cls(leancloud.Object.extend(cls.__lc_cls__).create_without_data(object_id))
+
+    @classmethod
+    def createPointer(cls, object_id):
+        return Pointer(cls.__lc_cls__, object_id)
+
+    def toPointer(self):
+        return Pointer(self.__lc_cls__, self.object_id)
