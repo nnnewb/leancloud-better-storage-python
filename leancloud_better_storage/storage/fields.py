@@ -4,7 +4,8 @@ from leancloud_better_storage.storage.order import OrderBy, ResultElementOrder
 FIELD_AVAILABLE_TYPES = [int, float, str, list, dict, None]
 
 
-class undefined: ...
+class undefined:
+    ...
 
 
 class Field(object):
