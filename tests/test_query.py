@@ -130,3 +130,21 @@ class TestModelQuery(TestCase):
 
         model = self.Model.query().filter(self.Model.name.in_(['Hii', 'hii', 'HII'])).first()
         self.assertIsNone(model)
+
+    def test_startswith_condition(self):
+        model = self.Model.create(name='iH', age=81)
+        model.commit()
+
+        results = self.Model.query().filter(self.Model.name.startswith('H')).find()
+        for result in results:
+            self.assertIn(result.name, ('Hi', 'Ho', 'He'))
+
+    def test_regex_condition(self):
+        model = self.Model.create(name='iH', age=81)
+        model.commit()
+
+        results = self.Model.query().filter(self.Model.name.regex('i$')).find()
+        self.assertEqual(len(results), 1)
+        for result in results:
+            self.assertEqual(result.name, 'Hi')
+            self.assertEqual(result.age, 18)
