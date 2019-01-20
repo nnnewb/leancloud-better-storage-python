@@ -3,6 +3,7 @@
 ## 开始使用
 
 - [模型声明](zh-hans/model.md)
+- [字段声明](zh-hans/field.md)
 - [插入](zh-hans/insert.md)
 - [查询](zh-hans/query.md)
 - [删除](zh-hans/delete.md)
