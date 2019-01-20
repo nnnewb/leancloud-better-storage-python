@@ -60,7 +60,7 @@ class ModelMeta(type):
 
 class Model(object, metaclass=ModelMeta):
     __lc_cls__ = ''
-    __fields__ = {}
+    __fields__ = {}  # type: dict
 
     object_id = Field('objectId')
     created_at = Field('createdAt')
