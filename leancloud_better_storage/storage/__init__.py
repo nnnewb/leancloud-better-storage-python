@@ -39,8 +39,9 @@ class EnumField(Field):
         return result
 
     def to_leancloud_value(self, value):
-        assert(isinstance(value, enum.Enum))
-        return value.value
+        if isinstance(value, enum.Enum):
+            return value.value
+        return value
 
 
 class NestField(Field):
@@ -103,7 +104,7 @@ class NestField(Field):
         if isinstance(value, dict) and value.get('__type') == 'Pointer':
             return value
         cls = self.get_model_class()
-        fn = lambda i: {'__type': 'Pointer', 'className': cls.__lc_cls__, 'objectId': i.id}
+        fn = lambda i: cls.createPointer(i.id)
         if self._many:
             return [fn(j) for j in value]
         else:
