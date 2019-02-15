@@ -21,6 +21,12 @@ def query_to_params(query, **extra):
     return params
 
 
+def convert_class_name(name):
+    if name in ('User', 'File', 'Followee', 'Follower', 'Installation', 'Role'):
+        return f'_{name}'
+    return
+
+
 class Batch(object):
     def __init__(self):
         self._requests = []
@@ -29,7 +35,8 @@ class Batch(object):
     def find(self, query, skip=None, limit=None):
         self._requests.append({
             'method': 'GET',
-            'path': '/{0}/classes/{1}'.format(client.SERVER_VERSION, query._model.__lc_cls__),
+            'path': '/{0}/classes/{1}'.format(client.SERVER_VERSION,
+                                              convert_class_name(query._model.__lc_cls__)),
             'params': query_to_params(query, skip=skip, limit=limit),
         })
         self._post_response.append(lambda r: [query._model(i) for i in r.get('results', [])])
@@ -39,7 +46,9 @@ class Batch(object):
         cls = obj.__class__
         self._requests.append({
             'method': 'PUT',
-            'path': '/{0}/classes/{1}/{2}'.format(client.SERVER_VERSION, cls.__lc_cls__, obj.id),
+            'path': '/{0}/classes/{1}/{2}'.format(client.SERVER_VERSION,
+                                                  convert_class_name(cls.__lc_cls__),
+                                                  obj.object_id),
             'params': {'fetchWhenSave': 'true'},
             'body': updates,
         })
