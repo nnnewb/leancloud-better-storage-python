@@ -24,7 +24,6 @@ def query_to_params(query, **extra):
 
 def convert_value(cls, k, v):
     if isinstance(v, (datetime, date)):
-        print(v.strftime('%Y-%m-%dH%H:%I:%S.%fZ'))
         return {'__type': 'Date', 'iso': v.strftime('%Y-%m-%dT%H:%I:%S.%fZ')}
     if isinstance(v, operation.BaseOp):
         return v.dump()
@@ -96,7 +95,6 @@ class Batch(object):
                     0,
                     post_fn(resp.get('success', {}))
                 ))
-                # result.append(Result.Ok())
         self._requests = []
         self._post_response = []
         return result
