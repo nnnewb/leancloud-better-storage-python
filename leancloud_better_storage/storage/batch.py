@@ -34,7 +34,7 @@ def convert_value(cls, k, v):
 def convert_class_name(name):
     if name in ('User', 'File', 'Followee', 'Follower', 'Installation', 'Role'):
         return f'_{name}'
-    return
+    return name
 
 
 class Batch(object):
