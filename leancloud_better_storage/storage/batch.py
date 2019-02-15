@@ -24,7 +24,8 @@ def query_to_params(query, **extra):
 
 def convert_value(cls, k, v):
     if isinstance(v, (datetime, date)):
-        return {'__type': 'Date', 'iso': v.strftime('%Y-%m-%dH%H:%I:%S.%fZ')}
+        print(v.strftime('%Y-%m-%dH%H:%I:%S.%fZ'))
+        return {'__type': 'Date', 'iso': v.strftime('%Y-%m-%dT%H:%I:%S.%fZ')}
     if isinstance(v, operation.BaseOp):
         return v.dump()
     return cls.__fields__[k].to_leancloud_value(v)
