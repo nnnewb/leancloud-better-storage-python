@@ -121,7 +121,6 @@ class Model(object, metaclass=ModelMeta):
 
     @classmethod
     def create(cls, **kwargs):
-        print('{}.create'.format(cls.__lc_cls__))
         if not {*kwargs.keys()}.issubset({*cls.__fields__.keys()}):
             raise KeyError('Unknown field name {0}'.format({*kwargs.keys()} - {*cls.__fields__.keys()}))
 
@@ -144,7 +143,6 @@ class Model(object, metaclass=ModelMeta):
             raise KeyError('Missing required field {0}.'.format(missing_fields))
 
         data = {k: cls.__fields__[k].to_leancloud_value(v) for (k, v) in attr.items()}
-        print(data)
         lc_obj = leancloud.Object.create(cls.__lc_cls__, **data)
         return cls(lc_obj)
 
