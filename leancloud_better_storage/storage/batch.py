@@ -4,8 +4,9 @@
 import json
 from urllib.parse import quote_plus
 from itertools import chain
+from datetime import datetime, date
 
-from leancloud import client
+from leancloud import client, operation
 
 
 def query_to_params(query, **extra):
@@ -19,6 +20,14 @@ def query_to_params(query, **extra):
             v = str(v)
         params[k] = v
     return params
+
+
+def convert_value(cls, k, v):
+    if isinstance(v, (datetime, date)):
+        return {'__type': 'Date', 'iso': v.strftime('%Y-%m-%dH%H:%I:%S.%fZ')}
+    if isinstance(v, operation.BaseOp):
+        return v.dump()
+    return cls.__fields__[k].to_leancloud_value(v)
 
 
 def convert_class_name(name):
@@ -44,13 +53,14 @@ class Batch(object):
 
     def update(self, obj, updates):
         cls = obj.__class__
+        data = {k: convert_value(cls, k, v) for (k, v) in updates.items()}
         self._requests.append({
             'method': 'PUT',
             'path': '/{0}/classes/{1}/{2}'.format(client.SERVER_VERSION,
                                                   convert_class_name(cls.__lc_cls__),
                                                   obj.object_id),
             'params': {'fetchWhenSave': 'true'},
-            'body': updates,
+            'body': data,
         })
         self._post_response.append(lambda r: cls(r))
         return self
