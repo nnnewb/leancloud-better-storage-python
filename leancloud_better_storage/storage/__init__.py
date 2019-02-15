@@ -39,8 +39,9 @@ class EnumField(Field):
         return result
 
     def to_leancloud_value(self, value):
-        assert(isinstance(value, enum.Enum))
-        return value.value
+        if isinstance(value, enum.Enum):
+            return value.value
+        return value
 
 
 class NestField(Field):
