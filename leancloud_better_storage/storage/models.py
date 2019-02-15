@@ -63,12 +63,11 @@ class ModelMeta(type):
 
 class Pointer(dict):
     def __init__(self, className, objectId):
+        if className in ('User', 'File', 'Followee', 'Follower', 'Installation', 'Role'):
+            className = '_{}'.format(className)
         self['__type'] = 'Pointer'
         self['className'] = className
         self['objectId'] = objectId
-
-
-
 
 
 class Model(object, metaclass=ModelMeta):
