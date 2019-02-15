@@ -65,8 +65,24 @@ class Batch(object):
         self._post_response.append(lambda r: cls(r))
         return self
 
+    def create(self, obj):
+        # TODO: Nest object creation not support.
+        cls = obj.__class__
+        data = {k: convert_value(cls, k, v)
+                for (k, v) in obj.lc_object._attributes.items()}
+        self._requests.append({
+            'method': 'POST',
+            'path': '/{0}/classes/{1}'.format(client.SERVER_VERSION,
+                                              convert_class_name(cls.__lc_cls__)),
+            'params': {'fetchWhenSave': 'true'},
+            'body': data,
+        })
+        self._post_response.append(lambda r: cls(r))
+        return self
+
     def execute(self):
-        data = client.post('/batch', params={'requests': self._requests}).json()
+        resp = client.post('/batch', params={'requests': self._requests})
+        data = resp.json()
         result = []
         for post_fn, resp in zip(self._post_response, data):
             if 'error' in resp:
