@@ -22,20 +22,7 @@ pip install leancloud-better-storage
 
 ## Example
 
-```python
-from leancloud_better_storage.storage import models, fields
-
-class People(models.Model):
-    name = fields.Field()
-    age = fields.Field()
-    invited = fields.Field()
-
-mr_wang = People.query().filter_by(name='Mr.Wang').filter(People.age < 21).first()
-
-if mr_wang is not None:
-    mr_wang.invited = True
-    mr_wang.commit()
-```
+![Example](docs/example.png)
 
 ## Document
 
