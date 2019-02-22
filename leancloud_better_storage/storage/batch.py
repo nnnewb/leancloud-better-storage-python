@@ -53,7 +53,8 @@ class Batch(object):
 
     def update(self, obj, updates):
         cls = obj.__class__
-        data = {k: convert_value(cls, k, v) for (k, v) in updates.items()}
+        data = {cls._get_real_field_name(k): convert_value(cls, k, v)
+                for (k, v) in updates.items()}
         self._requests.append({
             'method': 'PUT',
             'path': '/{0}/classes/{1}/{2}'.format(client.SERVER_VERSION,
@@ -68,7 +69,7 @@ class Batch(object):
     def create(self, obj):
         # TODO: Nest object creation not support.
         cls = obj.__class__
-        data = {k: convert_value(cls, k, v)
+        data = {cls._get_real_field_name(k): convert_value(cls, k, v)
                 for (k, v) in obj.lc_object._attributes.items()}
         self._requests.append({
             'method': 'POST',
