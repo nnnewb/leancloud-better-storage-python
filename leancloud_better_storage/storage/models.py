@@ -73,22 +73,6 @@ class Model(object, metaclass=ModelMeta):
     def __init__(self, lc_obj=None):
         self._lc_obj = lc_obj
 
-    def __getattribute__(self, item):
-        ret = super(Model, self).__getattribute__(item)
-        if isinstance(ret, Field):
-            field_name = self._get_real_field_name(item)
-
-            return self._lc_obj.get(field_name)
-
-        return ret
-
-    def __setattr__(self, key, value):
-        field_name = self._get_real_field_name(key)
-        if field_name is None:
-            return super(Model, self).__setattr__(key, value)
-
-        self._lc_obj.set(field_name, value)
-
     @classmethod
     def _get_real_field_name(cls, name):
         if name in cls.__fields__:

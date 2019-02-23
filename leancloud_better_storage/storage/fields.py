@@ -76,3 +76,13 @@ class Field(object):
 
     def startswith(self, pattern):
         return Condition(self, ConditionOperator.StartsWith, pattern)
+
+    def __get__(self, instance, owner):
+        if instance:
+            return instance.lc_object.get(self.field_name)
+        return self
+
+    def __set__(self, instance, value):
+        instance.lc_object.set(self.field_name, value)
+
+    # question: any behavior when user say wanna to delete a field ?
