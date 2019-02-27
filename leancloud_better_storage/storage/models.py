@@ -2,8 +2,32 @@ from copy import deepcopy
 
 import leancloud
 
+from leancloud_better_storage.storage.fields import Field, undefined, auto_fill
 from leancloud_better_storage.storage.query import Query
-from leancloud_better_storage.storage.fields import Field, undefined
+
+
+def _validate(schema, input_):
+    required_fields = {*filter(lambda field: field.nullable is False and field.default is undefined, schema.values())}
+    required_keys = {key for key, field in schema.items() if field in required_fields}
+    input_keys = {*input_.keys()}
+
+    if input_keys.issuperset({*schema.keys()}):
+        raise KeyError("Unknown field name {0}".format(input_keys - {*schema.keys()}))
+    elif not required_keys.issubset(input_keys):
+        raise KeyError("Missing required field {0}".format(required_keys - input_keys))
+
+
+def _merge_default_and_args(schema, args):
+    attrs = {
+        field.field_name: field.default() if callable(field.default) else field.default
+        for field in filter(lambda field: field.default not in (undefined, auto_fill), schema.values())
+        if field.nullable or field.default
+    }
+    attrs.update({
+        schema[key].field_name: value
+        for key, value in args.items()
+    })
+    return attrs
 
 
 class ModelMeta(type):
@@ -62,9 +86,9 @@ class Model(object, metaclass=ModelMeta):
     __lc_cls__ = ''
     __fields__ = {}  # type: dict
 
-    object_id = Field('objectId')
-    created_at = Field('createdAt')
-    updated_at = Field('updatedAt')
+    object_id = Field('objectId', default=auto_fill)
+    created_at = Field('createdAt', default=auto_fill)
+    updated_at = Field('updatedAt', default=auto_fill)
 
     @property
     def lc_object(self):
@@ -74,36 +98,9 @@ class Model(object, metaclass=ModelMeta):
         self._lc_obj = lc_obj
 
     @classmethod
-    def _get_real_field_name(cls, name):
-        if name in cls.__fields__:
-            return cls.__fields__[name].field_name
-        return None
-
-    @classmethod
     def create(cls, **kwargs):
-        if not {*kwargs.keys()}.issubset({*cls.__fields__.keys()}):
-            raise KeyError('Unknown field name {0}'.format({*kwargs.keys()} - {*cls.__fields__.keys()}))
-
-        attr = {
-            field.field_name: field.default() if callable(field.default) else field.default
-            for field in filter(lambda v: v.default is not undefined, cls.__fields__.values())
-            if field.nullable or field.default
-        }
-
-        for key, val in kwargs.items():
-            real_name = cls._get_real_field_name(key)
-            attr[real_name] = val
-
-        missing_fields = {
-            key
-            for key, field in cls.__fields__.items()
-            if field.nullable is False and field.default in (None, undefined) and field.field_name not in attr
-        }
-        if len(missing_fields) != 0:
-            raise KeyError('Missing required field {0}.'.format(missing_fields))
-
-        lc_obj = leancloud.Object.create(cls.__lc_cls__, **attr)
-        return cls(lc_obj)
+        _validate(cls.__fields__, kwargs)
+        return cls(leancloud.Object.create(cls.__lc_cls__, **_merge_default_and_args(cls.__fields__, kwargs)))
 
     def commit(self):
         self._lc_obj.save()
