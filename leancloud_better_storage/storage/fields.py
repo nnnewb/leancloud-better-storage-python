@@ -1,14 +1,19 @@
-from leancloud_better_storage.storage.query import Condition, ConditionOperator
 from leancloud_better_storage.storage.order import OrderBy, ResultElementOrder
+from leancloud_better_storage.storage.query import Condition, ConditionOperator
 
 FIELD_AVAILABLE_TYPES = [int, float, str, list, dict, None]
 
 
 class undefined:
-    ...
+    pass
+
+
+class auto_fill:
+    pass
 
 
 class Field(object):
+    __hash__ = object.__hash__
 
     @property
     def field_name(self):
@@ -86,3 +91,43 @@ class Field(object):
         instance.lc_object.set(self.field_name, value)
 
     # question: any behavior when user say wanna to delete a field ?
+
+
+class StringField(Field):
+    pass
+
+
+class NumberField(Field):
+    pass
+
+
+class BooleanField(Field):
+    pass
+
+
+class DateTimeField(Field):
+    pass
+
+
+class FileField(Field):
+    pass
+
+
+class ArrayField(Field):
+    pass
+
+
+class ObjectField(Field):
+    pass
+
+
+class GeoPointField(Field):
+    pass
+
+
+class RefField(Field):
+    pass
+
+
+class AnyField(Field):
+    pass
