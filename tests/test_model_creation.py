@@ -10,127 +10,131 @@ class TestModelCreation(TestCase):
 
     def setUp(self):
         self.cls_name = 'TestModel'
+        self.cls_names = [self.cls_name, 'TestModelA', 'TestModelB']
         setup()
 
     def tearDown(self):
-        try:
-            leancloud.Object.destroy_all(leancloud.Query(self.cls_name).find())
-        except leancloud.LeanCloudError:
-            pass
+        for cls_name in self.cls_names:
+            try:
+                leancloud.Object.destroy_all(leancloud.Query(cls_name).find())
+            except leancloud.LeanCloudError:
+                pass
 
     def test_simple_create(self):
-        class MyModel(models.Model):
+        class PersonA(models.Model):
+            __lc_cls__ = self.cls_name
             name = fields.Field()
 
-        instance = MyModel.create(name='my name')
+        instance = PersonA.create(name='my name')
         self.assertEqual(instance.lc_object.get('name'), 'my name')
 
-        class ModelB(models.Model):
+        class PersonB(models.Model):
+            __lc_cls__ = self.cls_name
             name = fields.Field('NameField')
 
-        instance = ModelB.create(name='my name')
+        instance = PersonB.create(name='my name')
         self.assertEqual(instance.lc_object.get('NameField'), 'my name')
 
     def test_create_miss_required(self):
-        class ModelA(models.Model):
+        class Person(models.Model):
+            __lc_cls__ = self.cls_name
             name = fields.Field(nullable=False)
 
-        try:
-            ModelA.create()
-            raise Exception('Missing required field should raise a KeyError!')
-        except KeyError:
-            pass
+        with self.assertRaises(KeyError):
+            Person.create()
 
     def test_create_unknown_field(self):
-        class ModelA(models.Model):
-            pass
+        class Person(models.Model):
+            __lc_cls__ = self.cls_name
 
-        try:
-            ModelA.create(name='123')
-            raise Exception('Unknown field in creation should raise a KeyError!')
-        except KeyError:
-            pass
+        with self.assertRaises(KeyError):
+            Person.create(name='123')
 
     def test_simple_create_inherit(self):
         class BaseModel(models.Model):
+            __lc_cls__ = self.cls_name
             name = fields.Field()
 
-        class ModelA(BaseModel):
+        class PersonA(BaseModel):
+            __lc_cls__ = self.cls_names[1]
             age = fields.Field()
 
-        class ModelB(BaseModel):
-            pass
+        class PersonB(BaseModel):
+            __lc_cls__ = self.cls_names[2]
 
-        a = ModelA.create(name='1')
-        b = ModelA.create(name='2', age=10)
-        c = ModelB.create(name='3')
+        person_a = PersonA.create(name='1')
+        person_b = PersonA.create(name='2', age=10)
+        person_c = PersonB.create(name='3')
 
-        self.assertEqual(a.lc_object.get('name'), '1')
-        self.assertEqual(b.lc_object.get('name'), '2')
-        self.assertEqual(b.lc_object.get('age'), 10)
-        self.assertEqual(c.lc_object.get('name'), '3')
+        self.assertEqual(person_a.lc_object.get('name'), '1')
+        self.assertEqual(person_b.lc_object.get('name'), '2')
+        self.assertEqual(person_b.lc_object.get('age'), 10)
+        self.assertEqual(person_c.lc_object.get('name'), '3')
 
     def test_simple_commit(self):
-        class ModelA(models.Model):
+        class Person(models.Model):
             __lc_cls__ = self.cls_name
             name = fields.Field()
 
-        a = ModelA.create(name='Hello world')
-        a.commit()
-        self.assertEqual(a.name, 'Hello world')
+        person = Person.create(name='Hello world')
+        person.commit()
+        self.assertEqual(person.name, 'Hello world')
 
     def test_bulk_commit(self):
-        class ModelA(models.Model):
+        class Person(models.Model):
             __lc_cls__ = self.cls_name
             name = fields.Field()
 
-        instances = [
-            ModelA.create(name='Hi {0}'.format(i))
+        persons = [
+            Person.create(name='Hi {0}'.format(i))
             for i in range(10)
         ]
-        ModelA.commit_all(*instances)
+        Person.commit_all(*persons)
 
     def test_create_with_default(self):
-        class ModelA(models.Model):
+        class Person(models.Model):
             __lc_cls__ = self.cls_name
-
             name = fields.Field(nullable=False, default='Hi')
 
-        model = ModelA.create()
-        self.assertEqual(model.name, 'Hi')
-        model.commit_all()
-        model.drop()
+        person = Person.create()
+        self.assertEqual(person.name, 'Hi')
+        person.commit_all()
+        person.drop()
 
     def test_create_with_default_initializer(self):
-        class MyModel(models.Model):
+        class Person(models.Model):
             __lc_cls__ = 'TestModel'
-
             name = models.Field(default=lambda: '12345')
 
-        model = MyModel.create()
-        self.assertEqual(model.name, '12345')
+        person = Person.create()
+        self.assertEqual(person.name, '12345')
 
     def test_create_named_field_with_default(self):
-        class MyModel(models.Model):
-            hi = models.Field('name', default='Hello')
+        class Person(models.Model):
+            __lc_cls__ = self.cls_name
+            other_name = models.Field('name', default='Hello')
 
-        model = MyModel.create()
-        model.commit()
-        model.drop()
+        person = Person.create()
+        self.assertEqual(person.other_name, 'Hello')
+        self.assertEqual(Person.__fields__['other_name'].field_name, 'name')
+        person.commit()
+        person.drop()
 
     def test_initialize_field_with_undefined(self):
-        class MyModel(models.Model):
-            testInitializeFieldWithUndefinedField = models.Field()
+        class PersonA(models.Model):
+            __lc_cls__ = self.cls_names[1]
+            undefined_initialized_field = models.Field()
 
-        class MyModel2(models.Model):
-            testInitializeWithNullField = models.Field(default=None)
+        class PersonB(models.Model):
+            __lc_cls__ = self.cls_names[2]
+            none_initialized_field = models.Field(default=None)
 
-        m = MyModel.create()
+        m = PersonA.create()
         m.commit()
-        assert 'testInitializeFieldWithUndefinedField' not in m.lc_object._attributes
-        assert m.testInitializeFieldWithUndefinedField is None
+        assert 'undefined_initialized_field' not in m.lc_object._attributes
+        assert m.undefined_initialized_field is None
 
-        m2 = MyModel2.create()
+        m2 = PersonB.create()
         m2.commit()
-        assert 'testInitializeWithNullField' in m2.lc_object._attributes
-        assert m2.testInitializeWithNullField is None
+        assert 'none_initialized_field' in m2.lc_object._attributes
+        assert m2.none_initialized_field is None
