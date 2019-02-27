@@ -1,14 +1,13 @@
 from unittest import TestCase
 
 import leancloud
-from leancloud import GeoPoint
 
-from leancloud_better_storage.storage.fields import GeoPointField
+from leancloud_better_storage.storage.fields import RefField, Field
 from leancloud_better_storage.storage.models import Model
 from tests.utils import setup
 
 
-class TestFieldTypes(TestCase):
+class TestRefField(TestCase):
 
     def setUp(self):
         self.cls_name = 'FieldTypeTest'
@@ -20,12 +19,69 @@ class TestFieldTypes(TestCase):
         except leancloud.LeanCloudError:
             pass
 
-    def test_initialize_geo_point_field(self):
-        class M(Model):
+    def test_initialize_ref_field(self):
+        class Person(Model):
             __lc_cls__ = self.cls_name
-            geo = GeoPointField()
+            girl_friend = RefField(ref_cls='Person')
 
-        m = M.create(geo=GeoPoint(30, 30))
-        m.commit()
-        m = M.query().filter_by(object_id=m.object_id).first()
-        self.assertEqual(type(m.geo), GeoPoint)
+        girl = Person.create()
+        boy = Person.create(girl_friend=girl.lc_object)
+        girl.commit()
+        boy.commit()
+        self.assertIsInstance(boy.girl_friend, Person)
+        self.assertEqual(boy.girl_friend.object_id, girl.object_id)
+
+    def test_get_null_ref_field(self):
+        class Person(Model):
+            __lc_cls__ = self.cls_name
+            girl_friend = RefField(ref_cls='Person')
+
+        girl = Person.create()
+        boy = Person.create()
+        girl.commit()
+        boy.commit()
+        self.assertIsNone(boy.girl_friend)
+        self.assertIsNone(girl.girl_friend)
+
+    def test_get_included_ref_field(self):
+        class Person(Model):
+            __lc_cls__ = self.cls_name
+            girl_friend = RefField(ref_cls='Person')
+
+        girl = Person.create()
+        boy = Person.create(girl_friend=girl.lc_object)
+        girl.commit()
+        boy.commit()
+
+        result = Person.query().filter_by(object_id=boy.object_id).includes(Person.girl_friend).first()
+        self.assertEqual(result.girl_friend.object_id, girl.object_id)
+
+    def test_get_not_included_ref_field(self):
+        class Person(Model):
+            __lc_cls__ = self.cls_name
+            name = Field()
+            girl_friend = RefField(ref_cls='Person', lazy=False)
+
+        girl = Person.create(name='alice')
+        boy = Person.create(girl_friend=girl.lc_object)
+        girl.commit()
+        boy.commit()
+
+        result = Person.query().filter_by(object_id=boy.object_id).first()
+        self.assertEqual(result.girl_friend.object_id, girl.object_id)
+        self.assertIsNone(result.girl_friend.name)
+
+    def test_get_not_included_lazy_load_ref_field(self):
+        class Person(Model):
+            __lc_cls__ = self.cls_name
+            name = Field()
+            girl_friend = RefField(ref_cls='Person', lazy=True)
+
+        girl = Person.create(name='alice')
+        boy = Person.create(girl_friend=girl.lc_object)
+        girl.commit()
+        boy.commit()
+
+        result = Person.query().filter_by(object_id=boy.object_id).first()
+        self.assertEqual(result.girl_friend.object_id, girl.object_id)
+        self.assertEqual(result.girl_friend.name, girl.name)
