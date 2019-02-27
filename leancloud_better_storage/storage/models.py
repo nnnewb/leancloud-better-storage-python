@@ -30,6 +30,9 @@ def _merge_default_and_args(schema, args):
     return attrs
 
 
+model_registry = {}
+
+
 class ModelMeta(type):
     """
     ModelMeta
@@ -79,6 +82,7 @@ class ModelMeta(type):
         # Tag fields with created model class and its __lc_cls__.
         created = type.__new__(mcs, name, bases, attr)
         mcs.tag_all_fields(created, created.__fields__)
+        model_registry[name] = created
         return created
 
 
