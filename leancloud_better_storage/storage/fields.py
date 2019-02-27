@@ -1,3 +1,5 @@
+import leancloud
+
 from leancloud_better_storage.storage.order import OrderBy, ResultElementOrder
 from leancloud_better_storage.storage.query import Condition, ConditionOperator
 
@@ -126,7 +128,35 @@ class GeoPointField(Field):
 
 
 class RefField(Field):
-    pass
+
+    def __init__(self, name=None, nullable=True, default=undefined, type_=None, ref_cls=None, lazy=True):
+        super().__init__(name, nullable, default, type_)
+        self.ref_cls = ref_cls
+        self.lazy = lazy
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+
+        if isinstance(self.ref_cls, str):
+            from leancloud_better_storage.storage.models import model_registry
+            self.ref_cls = model_registry[self.ref_cls]
+
+        obj = instance.lc_object.get(self.field_name)
+
+        if obj is None:
+            return None
+
+        if len(obj._attributes) == 1 and self.lazy:
+            obj.fetch()
+
+        return self.ref_cls(obj)
+
+    def __set__(self, instance, value):
+        if isinstance(value, leancloud.Object):
+            instance.lc_object.set(self.field_name, value)
+        elif isinstance(value, self.ref_cls):
+            instance.lc_object.set(self.field_name, value.lc_object)
 
 
 class AnyField(Field):
