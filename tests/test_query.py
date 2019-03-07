@@ -3,7 +3,6 @@ from unittest import TestCase
 import leancloud
 
 from leancloud_better_storage.storage import models, fields
-
 from tests.utils import setup
 
 
@@ -172,3 +171,19 @@ class TestModelQuery(TestCase):
 
         people = self.People.query().filter_by(name='Hi').first()
         self.assertIsNone(people.profile.get('score'))
+
+    def test_query_unknown_field(self):
+        with self.assertRaises(KeyError):
+            self.People.query().filter_by(gamer='gogogo')
+
+    def test_query_count_unknown_collection(self):
+        class M(models.Model):
+            __lc_cls__ = 'Unknown'
+
+        self.assertEqual(M.query().count(), 0)
+
+    def test_query_find_unknown_collection(self):
+        class M(models.Model):
+            __lc_cls__ = 'Unknown'
+
+        self.assertEqual(len(M.query().find()), 0)

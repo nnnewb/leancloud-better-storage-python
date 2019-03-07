@@ -31,6 +31,24 @@ class TestRefField(TestCase):
         self.assertIsInstance(boy.girl_friend, Person)
         self.assertEqual(boy.girl_friend.object_id, girl.object_id)
 
+    def test_assign_ref_field(self):
+        class Person(Model):
+            __lc_cls__ = self.cls_name
+            girl_friend = RefField(ref_cls='Person')
+
+        girl = Person.create()
+        boy = Person.create()
+        boy.girl_friend = girl
+
+        self.assertIsInstance(boy.girl_friend, Person)
+        self.assertEqual(boy.girl_friend.object_id, girl.object_id)
+
+        boy.girl_friend = None
+        boy.girl_friend = girl.lc_object
+
+        self.assertIsInstance(boy.girl_friend, Person)
+        self.assertEqual(boy.girl_friend.object_id, girl.object_id)
+
     def test_get_null_ref_field(self):
         class Person(Model):
             __lc_cls__ = self.cls_name

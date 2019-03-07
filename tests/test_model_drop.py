@@ -3,7 +3,6 @@ from unittest import TestCase
 import leancloud
 
 from leancloud_better_storage.storage import models, fields
-
 from tests.utils import setup
 
 
@@ -32,6 +31,7 @@ class TestModelQuery(TestCase):
         model = self.Model.create(name='Hello', age=10)
         model.commit()
         model.drop()
+        self.assertIsNone(model.lc_object)
         model = self.Model.query().filter_by(name='Hello').first()
         self.assertIsNone(model)
 
@@ -44,5 +44,8 @@ class TestModelQuery(TestCase):
             model.commit()
 
         self.Model.drop_all(*models)
+        for instance in models:
+            self.assertIsNone(instance.lc_object)
+
         model = self.Model.query().filter_by(name='Hi 1').first()
         self.assertIsNone(model)
