@@ -44,7 +44,7 @@ class ModelMeta(type):
     _lc_cls_key = '__lc_cls__'
 
     @classmethod
-    def merge_parent_fields(mcs, bases):
+    def _merge_parent_fields(mcs, bases):
         fields = {}
 
         for bcs in bases:
@@ -53,19 +53,23 @@ class ModelMeta(type):
         return fields
 
     @classmethod
-    def tag_all_fields(mcs, model, fields):
-        for key, val in fields.items():
-            val._cls_name = model.__lc_cls__
-            val._model = model
+    def _merge_parent_life_cycle_callback(mcs, bases):
 
-            # if field unnamed, set default name as python class declared member name.
-            if val.field_name is None:
-                val._field_name = key
+        _instance_created_hook_fn = []
+        _instance_updated_hook_fn = []
+        _instance_deleted_hook_fn = []
+
+        for cls in bases:
+            _instance_created_hook_fn.extend(getattr(cls, '_instance_created_hook_fn', []))
+            _instance_updated_hook_fn.extend(getattr(cls, '_instance_updated_hook_fn', []))
+            _instance_deleted_hook_fn.extend(getattr(cls, '_instance_deleted_hook_fn', []))
+
+        return _instance_created_hook_fn, _instance_updated_hook_fn, _instance_deleted_hook_fn
 
     def __new__(mcs, name, bases, attr):
         # merge super classes fields into __fields__ dictionary.
         fields = attr.get(mcs._fields_key, {})
-        fields.update(mcs.merge_parent_fields(bases))
+        fields.update(mcs._merge_parent_fields(bases))
 
         # Insert fields into __fields__ dictionary.
         # It will replace super classes same named fields.
@@ -79,9 +83,16 @@ class ModelMeta(type):
         lc_cls = attr.get(mcs._lc_cls_key, name)
         attr[mcs._lc_cls_key] = lc_cls
 
+        attr['_instance_created_hook_fn'] = []
+        attr['_instance_updated_hook_fn'] = []
+        attr['_instance_deleted_hook_fn'] = []
+
         # Tag fields with created model class and its __lc_cls__.
         created = type.__new__(mcs, name, bases, attr)
-        mcs.tag_all_fields(created, created.__fields__)
+
+        for key, field in created.__fields__.items():
+            field._after_model_created(created, key)
+
         model_registry[name] = created
         return created
 
@@ -93,6 +104,30 @@ class Model(object, metaclass=ModelMeta):
     object_id = Field('objectId', default=auto_fill)
     created_at = Field('createdAt', default=auto_fill)
     updated_at = Field('updatedAt', default=auto_fill)
+
+    @classmethod
+    def register_created_hook(cls, fn):
+        """ 注册新对象保存时的钩子函数。对于 object_id 为空的对象将被视为新对象。 """
+        cls._instance_created_hook_fn.append(fn)
+
+    @classmethod
+    def register_updated_hook(cls, fn):
+        """ 注册对象更新时的钩子函数。 """
+        cls._instance_updated_hook_fn.append(fn)
+
+    @classmethod
+    def register_deleted_hook(cls, fn):
+        """ 注册删除对象时调用的钩子函数。 """
+        cls._instance_deleted_hook_fn.append(fn)
+
+    def _do_life_cycle_hook(self, life_cycle):
+        hook_fn_attr_name = '_instance_{}_hook_fn'.format(life_cycle)
+        hook_fn = getattr(self, hook_fn_attr_name, [])
+        for cls in self.__class__.mro():
+            hook_fn.extend(getattr(cls, hook_fn_attr_name, []))
+
+        for fn in hook_fn:
+            fn(self)
 
     @property
     def lc_object(self):
@@ -107,26 +142,29 @@ class Model(object, metaclass=ModelMeta):
         return cls(leancloud.Object.create(cls.__lc_cls__, **_merge_default_and_args(cls.__fields__, kwargs)))
 
     def commit(self):
+        self._do_life_cycle_hook('created' if self.object_id is None else 'updated')
         self._lc_obj.save()
         return self
 
     @classmethod
     def commit_all(cls, *models):
-        leancloud.Object.extend(cls.__lc_cls__).save_all([
-            model._lc_obj
-            for model in models
-        ])
+        for instance in models:
+            instance._do_life_cycle_hook('created' if instance.object_id is None else 'updated')
+
+        leancloud.Object.extend(cls.__lc_cls__).save_all([instance._lc_obj for instance in models])
 
     def drop(self):
+        self._do_life_cycle_hook('deleted')
+
         self._lc_obj.destroy()
         self._lc_obj = None
 
     @classmethod
     def drop_all(cls, *models):
-        leancloud.Object.extend(cls.__lc_cls__).destroy_all([
-            model._lc_obj
-            for model in models
-        ])
+        for instance in models:
+            instance._do_life_cycle_hook('deleted')
+
+        leancloud.Object.extend(cls.__lc_cls__).destroy_all([instance._lc_obj for instance in models])
         for model in models:
             model._lc_obj = None
 

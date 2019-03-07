@@ -1,4 +1,5 @@
 from unittest import TestCase
+
 from leancloud_better_storage.storage import models, fields
 
 
@@ -38,3 +39,4 @@ class TestModelDeclaration(TestCase):
         self.assertIn('name', PersonB.__fields__)
         self.assertIn('age', PersonB.__fields__)
         self.assertIn('bio', PersonB.__fields__)
+
