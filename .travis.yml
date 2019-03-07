@@ -12,7 +12,7 @@ after_success:
 branches:
   only:
   - master
-  - dev
+  - develop
   - release/.*
 env:
 - LEANCLOUD_APP_ID=MdYmVQcBImbvesIujDhqxByR-gzGzoHsz LEANCLOUD_APP_KEY=NwJgS8gDNuUclxaXVuuv395i CODECOV_TOKEN="9c89b978-e55c-45ba-a0f1-1f67644e050a"
