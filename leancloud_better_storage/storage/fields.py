@@ -131,16 +131,12 @@ class RefField(Field):
 
     def __init__(self, name=None, nullable=True, default=undefined, type_=None, ref_cls=None, lazy=True):
         super().__init__(name, nullable, default, type_)
-        self.ref_cls = ref_cls
+        self._ref_cls = ref_cls
         self.lazy = lazy
 
     def __get__(self, instance, owner):
         if instance is None:
             return self
-
-        if isinstance(self.ref_cls, str):
-            from leancloud_better_storage.storage.models import model_registry
-            self.ref_cls = model_registry[self.ref_cls]
 
         obj = instance.lc_object.get(self.field_name)
 
@@ -151,6 +147,14 @@ class RefField(Field):
             obj.fetch()
 
         return self.ref_cls(obj)
+
+    @property
+    def ref_cls(self):
+        if isinstance(self._ref_cls, str):
+            from leancloud_better_storage.storage.models import model_registry
+            self._ref_cls = model_registry[self._ref_cls]
+
+        return self._ref_cls
 
     def __set__(self, instance, value):
         if isinstance(value, leancloud.Object):
