@@ -7,6 +7,7 @@ verify_ssl = true
 mypy="*"
 flake8="*"
 autopep8 = "*"
+coverage = "*"
 
 [packages]
 leancloud="==2.1.8"
