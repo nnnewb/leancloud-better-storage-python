@@ -11,10 +11,10 @@ def _validate(schema, input_):
     required_keys = {key for key, field in schema.items() if field in required_fields}
     input_keys = {*input_.keys()}
 
-    if input_keys.issuperset({*schema.keys()}):
-        raise KeyError("Unknown field name {0}".format(input_keys - {*schema.keys()}))
+    if not input_keys.issubset(set(schema.keys())):
+        raise KeyError("Unknown field name {}".format(input_keys - {*schema.keys()}))
     elif not required_keys.issubset(input_keys):
-        raise KeyError("Missing required field {0}".format(required_keys - input_keys))
+        raise KeyError("Missing required field {}".format(required_keys - input_keys))
 
 
 def _merge_default_and_args(schema, args):
@@ -51,20 +51,6 @@ class ModelMeta(type):
             fields.update(deepcopy(getattr(bcs, '__fields__', {})))
 
         return fields
-
-    @classmethod
-    def _merge_parent_life_cycle_callback(mcs, bases):
-
-        _pre_create_hook = []
-        _pre_update_hook = []
-        _pre_delete_hook = []
-
-        for cls in bases:
-            _pre_create_hook.extend(getattr(cls, '_pre_create_hook', []))
-            _pre_update_hook.extend(getattr(cls, '_pre_update_hook', []))
-            _pre_delete_hook.extend(getattr(cls, '_pre_delete_hook', []))
-
-        return _pre_create_hook, _pre_update_hook, _pre_delete_hook
 
     def __new__(mcs, name, bases, attr):
         # merge super classes fields into __fields__ dictionary.
@@ -121,7 +107,7 @@ class Model(object, metaclass=ModelMeta):
         cls._pre_delete_hook.append(fn)
 
     def _do_life_cycle_hook(self, life_cycle):
-        hook_fn_attr_name = '_instance_{}_hook_fn'.format(life_cycle)
+        hook_fn_attr_name = '_{}_hook'.format(life_cycle)
         hook_fn = getattr(self, hook_fn_attr_name, [])
         for cls in self.__class__.mro():
             hook_fn.extend(getattr(cls, hook_fn_attr_name, []))
@@ -142,19 +128,19 @@ class Model(object, metaclass=ModelMeta):
         return cls(leancloud.Object.create(cls.__lc_cls__, **_merge_default_and_args(cls.__fields__, kwargs)))
 
     def commit(self):
-        self._do_life_cycle_hook('created' if self.object_id is None else 'updated')
+        self._do_life_cycle_hook('pre_create' if self.object_id is None else 'pre_update')
         self._lc_obj.save()
         return self
 
     @classmethod
     def commit_all(cls, *models):
         for instance in models:
-            instance._do_life_cycle_hook('created' if instance.object_id is None else 'updated')
+            instance._do_life_cycle_hook('pre_create' if instance.object_id is None else 'pre_update')
 
         leancloud.Object.extend(cls.__lc_cls__).save_all([instance._lc_obj for instance in models])
 
     def drop(self):
-        self._do_life_cycle_hook('deleted')
+        self._do_life_cycle_hook('pre_delete')
 
         self._lc_obj.destroy()
         self._lc_obj = None
@@ -162,7 +148,7 @@ class Model(object, metaclass=ModelMeta):
     @classmethod
     def drop_all(cls, *models):
         for instance in models:
-            instance._do_life_cycle_hook('deleted')
+            instance._do_life_cycle_hook('pre_delete')
 
         leancloud.Object.extend(cls.__lc_cls__).destroy_all([instance._lc_obj for instance in models])
         for model in models:
