@@ -29,7 +29,7 @@ class TestLifeCycleHook(TestCase):
         class M(Model):
             field = Field()
 
-        M.register_created_hook(fn)
+        M.register_pre_create_hook(fn)
         instance = M.create()
         with self.assertRaises(Created):
             instance.commit()
@@ -44,7 +44,7 @@ class TestLifeCycleHook(TestCase):
         class M(Model):
             field = Field()
 
-        M.register_updated_hook(fn)
+        M.register_pre_update_hook(fn)
         instance = M.create()
         instance.commit()
         with self.assertRaises(Updated):
@@ -60,7 +60,7 @@ class TestLifeCycleHook(TestCase):
         class M(Model):
             field = Field()
 
-        M.register_deleted_hook(fn)
+        M.register_pre_delete_hook(fn)
         instance = M.create()
         instance.commit()
         with self.assertRaises(Deleted):
@@ -89,7 +89,7 @@ class TestLifeCycleHook(TestCase):
         class Base(Model):
             pass
 
-        Base.register_created_hook(fn)
+        Base.register_pre_create_hook(fn)
 
         class M(Base):
             field = Field()
@@ -107,7 +107,7 @@ class TestLifeCycleHook(TestCase):
         class Base(Model):
             pass
 
-        Base.register_updated_hook(fn)
+        Base.register_pre_update_hook(fn)
 
         class M(Base):
             field = Field()
@@ -126,7 +126,7 @@ class TestLifeCycleHook(TestCase):
         class Base(Model):
             pass
 
-        Base.register_deleted_hook(fn)
+        Base.register_pre_delete_hook(fn)
 
         class M(Base):
             field = Field()

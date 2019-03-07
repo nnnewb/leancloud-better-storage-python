@@ -55,16 +55,16 @@ class ModelMeta(type):
     @classmethod
     def _merge_parent_life_cycle_callback(mcs, bases):
 
-        _instance_created_hook_fn = []
-        _instance_updated_hook_fn = []
-        _instance_deleted_hook_fn = []
+        _pre_create_hook = []
+        _pre_update_hook = []
+        _pre_delete_hook = []
 
         for cls in bases:
-            _instance_created_hook_fn.extend(getattr(cls, '_instance_created_hook_fn', []))
-            _instance_updated_hook_fn.extend(getattr(cls, '_instance_updated_hook_fn', []))
-            _instance_deleted_hook_fn.extend(getattr(cls, '_instance_deleted_hook_fn', []))
+            _pre_create_hook.extend(getattr(cls, '_pre_create_hook', []))
+            _pre_update_hook.extend(getattr(cls, '_pre_update_hook', []))
+            _pre_delete_hook.extend(getattr(cls, '_pre_delete_hook', []))
 
-        return _instance_created_hook_fn, _instance_updated_hook_fn, _instance_deleted_hook_fn
+        return _pre_create_hook, _pre_update_hook, _pre_delete_hook
 
     def __new__(mcs, name, bases, attr):
         # merge super classes fields into __fields__ dictionary.
@@ -83,9 +83,9 @@ class ModelMeta(type):
         lc_cls = attr.get(mcs._lc_cls_key, name)
         attr[mcs._lc_cls_key] = lc_cls
 
-        attr['_instance_created_hook_fn'] = []
-        attr['_instance_updated_hook_fn'] = []
-        attr['_instance_deleted_hook_fn'] = []
+        attr['_pre_create_hook'] = []
+        attr['_pre_update_hook'] = []
+        attr['_pre_delete_hook'] = []
 
         # Tag fields with created model class and its __lc_cls__.
         created = type.__new__(mcs, name, bases, attr)
@@ -106,19 +106,19 @@ class Model(object, metaclass=ModelMeta):
     updated_at = Field('updatedAt', default=auto_fill)
 
     @classmethod
-    def register_created_hook(cls, fn):
+    def register_pre_create_hook(cls, fn):
         """ 注册新对象保存时的钩子函数。对于 object_id 为空的对象将被视为新对象。 """
-        cls._instance_created_hook_fn.append(fn)
+        cls._pre_create_hook.append(fn)
 
     @classmethod
-    def register_updated_hook(cls, fn):
+    def register_pre_update_hook(cls, fn):
         """ 注册对象更新时的钩子函数。 """
-        cls._instance_updated_hook_fn.append(fn)
+        cls._pre_update_hook.append(fn)
 
     @classmethod
-    def register_deleted_hook(cls, fn):
+    def register_pre_delete_hook(cls, fn):
         """ 注册删除对象时调用的钩子函数。 """
-        cls._instance_deleted_hook_fn.append(fn)
+        cls._pre_delete_hook.append(fn)
 
     def _do_life_cycle_hook(self, life_cycle):
         hook_fn_attr_name = '_instance_{}_hook_fn'.format(life_cycle)

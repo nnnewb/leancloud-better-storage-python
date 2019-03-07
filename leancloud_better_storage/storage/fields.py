@@ -127,9 +127,9 @@ class DateTimeField(Field):
     def _after_model_created(self, model, name):
         super()._after_model_created(model, name)
         if self._auto_now_add:
-            model.register_created_hook(lambda instance: instance.lc_object.set(self.field_name, self._now_fn()))
+            model.register_pre_create_hook(lambda instance: instance.lc_object.set(self.field_name, self._now_fn()))
         if self._auto_now:
-            model.register_updated_hook(lambda instance: instance.lc_object.set(self.field_name, self._now_fn()))
+            model.register_pre_update_hook(lambda instance: instance.lc_object.set(self.field_name, self._now_fn()))
 
 
 class FileField(Field):
