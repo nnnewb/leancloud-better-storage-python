@@ -3,7 +3,7 @@ from unittest import TestCase
 import leancloud
 
 from leancloud_better_storage.storage import models, fields
-
+from leancloud_better_storage.storage.query import QueryLogicalError
 from tests.utils import setup
 
 
@@ -172,3 +172,14 @@ class TestModelQuery(TestCase):
 
         people = self.People.query().filter_by(name='Hi').first()
         self.assertIsNone(people.profile.get('score'))
+
+    def test_invalid_connected_logical_ops(self):
+        class People(models.Model):
+            name = models.Field()
+
+        with self.assertRaises(QueryLogicalError):
+            People.query().filter_by(name='123').and_().and_().first()
+        with self.assertRaises(QueryLogicalError):
+            People.query().filter_by(name='123').and_().or_().first()
+        with self.assertRaises(QueryLogicalError):
+            People.query().filter_by(name='123').or_().or_().first()
