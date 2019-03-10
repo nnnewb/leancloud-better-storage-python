@@ -1,7 +1,8 @@
 from datetime import datetime
 
-import leancloud
-
+from leancloud_better_storage.storage._util import deprecated
+from leancloud_better_storage.storage.conversion import conversion, convert_to_fit
+from leancloud_better_storage.storage.objectid import ObjectId
 from leancloud_better_storage.storage.order import OrderBy, ResultElementOrder
 from leancloud_better_storage.storage.query import Condition, ConditionOperator
 
@@ -16,8 +17,16 @@ class auto_fill:
     pass
 
 
-class Field(object):
-    __hash__ = object.__hash__
+class MetaField(type):
+
+    def __new__(mcs, name, bases, attributes):
+        created = type.__new__(mcs, name, bases, attributes)
+        created.__hash__ = object.__hash__
+        created._fit = staticmethod(lambda val: convert_to_fit(val, created))
+        return created
+
+
+class Field(object, metaclass=MetaField):
 
     @property
     def field_name(self):
@@ -106,6 +115,29 @@ class Field(object):
         return Condition(self, ConditionOperator.StartsWith, pattern)
 
 
+class ObjectIdField(Field):
+
+    def __init__(self, name='object_id', nullable=False, default=auto_fill):
+        super().__init__(name, nullable, default, None)
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        object_id = super(ObjectIdField, self).__get__(instance, owner)
+        if object_id is None:
+            return object_id
+        return ObjectId(object_id, self._model)
+
+    def __set__(self, instance, value):
+        raise ValueError('ObjectId should never manually set.')
+
+    def __eq__(self, other):
+        return Condition(self, ConditionOperator.Equal, self._fit(other))
+
+    def __ne__(self, other):
+        return Condition(self, ConditionOperator.NotEqual, self._fit(other))
+
+
 class StringField(Field):
 
     def __init__(self, max_length, name=None, nullable=True, default=undefined):
@@ -139,6 +171,7 @@ class DateTimeField(Field):
 
     def __init__(self, name=None, nullable=True, default=undefined, auto_now=False, auto_now_add=False,
                  now_fn=datetime.now):
+        super().__init__(name, nullable, default, None)
         self._auto_now = auto_now
         self._auto_now_add = auto_now_add
         self._now_fn = now_fn
@@ -168,11 +201,24 @@ class GeoPointField(Field):
 
 
 class RefField(Field):
+    __hash__ = object.__hash__
 
     def __init__(self, name=None, nullable=True, default=undefined, ref_cls=None, lazy=True):
         super().__init__(name, nullable, default, None)
         self._ref_cls = ref_cls
         self.lazy = lazy
+
+    def __eq__(self, other):
+        return Condition(self, ConditionOperator.Equal, self._fit(other))
+
+    def __ne__(self, other):
+        return Condition(self, ConditionOperator.NotEqual, self._fit(other))
+
+    def __lt__(self, other):
+        raise ValueError('RefField not support `<` comparison.')
+
+    def __gt__(self, other):
+        raise ValueError('RefField not support `>` comparison.')
 
     def __get__(self, instance, owner):
         if instance is None:
@@ -188,6 +234,9 @@ class RefField(Field):
 
         return self.ref_cls(obj)
 
+    def __set__(self, instance, value):
+        instance.lc_object.set(self.field_name, self._fit(value))
+
     @property
     def ref_cls(self):
         if isinstance(self._ref_cls, str):
@@ -196,12 +245,26 @@ class RefField(Field):
 
         return self._ref_cls
 
-    def __set__(self, instance, value):
-        if isinstance(value, leancloud.Object):
-            instance.lc_object.set(self.field_name, value)
-        elif isinstance(value, self.ref_cls):
-            instance.lc_object.set(self.field_name, value.lc_object)
-
 
 class AnyField(Field):
     pass
+
+
+def _register_all_conversions():
+    import leancloud
+    from leancloud_better_storage.storage.models import Model
+
+    # all object was null assignable
+    conversion(type(None), Field)(lambda val: val)
+
+    # ObjectIdField fitting to `str`
+    conversion(int, ObjectIdField)(lambda val: str(val))
+    conversion(ObjectId, ObjectIdField)(lambda val: val.id)
+
+    # RefField input object fitting to `leancloud.Object`
+    conversion(ObjectId, RefField)(lambda val: val.lc_object)
+    conversion(Model, RefField)(lambda val: val.lc_object)
+    conversion(leancloud.Object, RefField)(lambda val: val)
+
+
+_register_all_conversions()
