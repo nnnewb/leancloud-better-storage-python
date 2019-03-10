@@ -1,14 +1,23 @@
-from leancloud_better_storage.storage.query import Condition, ConditionOperator
+from datetime import datetime
+
+import leancloud
+
 from leancloud_better_storage.storage.order import OrderBy, ResultElementOrder
+from leancloud_better_storage.storage.query import Condition, ConditionOperator
 
 FIELD_AVAILABLE_TYPES = [int, float, str, list, dict, None]
 
 
 class undefined:
-    ...
+    pass
+
+
+class auto_fill:
+    pass
 
 
 class Field(object):
+    __hash__ = object.__hash__
 
     @property
     def field_name(self):
@@ -85,4 +94,91 @@ class Field(object):
     def __set__(self, instance, value):
         instance.lc_object.set(self.field_name, value)
 
+    def _after_model_created(self, model, name):
+        self._cls_name = model.__lc_cls__
+        self._model = model
+        if self._field_name is None:
+            self._field_name = name
+
     # question: any behavior when user say wanna to delete a field ?
+
+
+class StringField(Field):
+    pass
+
+
+class NumberField(Field):
+    pass
+
+
+class BooleanField(Field):
+    pass
+
+
+class DateTimeField(Field):
+
+    def __init__(self, name=None, nullable=True, default=undefined, type_=None, auto_now=False, auto_now_add=False,
+                 now_fn=datetime.now):
+        super().__init__(name, nullable, default, type_)
+        self._auto_now = auto_now
+        self._auto_now_add = auto_now_add
+        self._now_fn = now_fn
+
+    def _after_model_created(self, model, name):
+        super()._after_model_created(model, name)
+        if self._auto_now_add:
+            model.register_pre_create_hook(lambda instance: instance.lc_object.set(self.field_name, self._now_fn()))
+        if self._auto_now:
+            model.register_pre_update_hook(lambda instance: instance.lc_object.set(self.field_name, self._now_fn()))
+
+
+class FileField(Field):
+    pass
+
+
+class ArrayField(Field):
+    pass
+
+
+class ObjectField(Field):
+    pass
+
+
+class GeoPointField(Field):
+    pass
+
+
+class RefField(Field):
+
+    def __init__(self, name=None, nullable=True, default=undefined, type_=None, ref_cls=None, lazy=True):
+        super().__init__(name, nullable, default, type_)
+        self.ref_cls = ref_cls
+        self.lazy = lazy
+
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+
+        if isinstance(self.ref_cls, str):
+            from leancloud_better_storage.storage.models import model_registry
+            self.ref_cls = model_registry[self.ref_cls]
+
+        obj = instance.lc_object.get(self.field_name)
+
+        if obj is None:
+            return None
+
+        if len(obj._attributes) == 1 and self.lazy:
+            obj.fetch()
+
+        return self.ref_cls(obj)
+
+    def __set__(self, instance, value):
+        if isinstance(value, leancloud.Object):
+            instance.lc_object.set(self.field_name, value)
+        elif isinstance(value, self.ref_cls):
+            instance.lc_object.set(self.field_name, value.lc_object)
+
+
+class AnyField(Field):
+    pass

@@ -13,13 +13,13 @@ class TestModelQuery(TestCase):
         setup()
         self.cls_name = 'TestModel'
 
-        class ModelA(models.Model):
+        class Person(models.Model):
             __lc_cls__ = self.cls_name
 
             name = fields.Field()
             age = fields.Field()
 
-        self.Model = ModelA
+        self.Model = Person
 
     def tearDown(self):
         while True:

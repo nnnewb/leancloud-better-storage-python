@@ -1,24 +1,25 @@
 from unittest import TestCase
+
 from leancloud_better_storage.storage import models, fields
 
 
 class TestModelDeclaration(TestCase):
 
     def test_declare_model(self):
-        class MyModel(models.Model):
+        class Person(models.Model):
             name = fields.Field()
 
-        self.assertIn('name', MyModel.__fields__)
+        self.assertIn('name', Person.__fields__)
 
     def test_declare_inherit_model(self):
         class BaseModel(models.Model):
             name = fields.Field()
 
-        class MyModel(BaseModel):
+        class Person(BaseModel):
             age = fields.Field()
 
-        self.assertIn('name', MyModel.__fields__)
-        self.assertIn('age', MyModel.__fields__)
+        self.assertIn('name', Person.__fields__)
+        self.assertIn('age', Person.__fields__)
 
     def test_declare_multiple_inherit_model(self):
         class BaseModelA(models.Model):
@@ -27,14 +28,15 @@ class TestModelDeclaration(TestCase):
         class BaseModelB(models.Model):
             age = fields.Field()
 
-        class ModelA(BaseModelA, BaseModelB):
+        class PersonA(BaseModelA, BaseModelB):
             pass
 
-        class ModelB(BaseModelA, BaseModelB):
+        class PersonB(BaseModelA, BaseModelB):
             bio = fields.Field()
 
-        self.assertIn('name', ModelA.__fields__)
-        self.assertIn('age', ModelA.__fields__)
-        self.assertIn('name', ModelB.__fields__)
-        self.assertIn('age', ModelB.__fields__)
-        self.assertIn('bio', ModelB.__fields__)
+        self.assertIn('name', PersonA.__fields__)
+        self.assertIn('age', PersonA.__fields__)
+        self.assertIn('name', PersonB.__fields__)
+        self.assertIn('age', PersonB.__fields__)
+        self.assertIn('bio', PersonB.__fields__)
+
