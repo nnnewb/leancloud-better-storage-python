@@ -3,6 +3,8 @@
 [![PyPI version](https://badge.fury.io/py/leancloud-better-storage.svg)](https://badge.fury.io/py/leancloud-better-storage)
 [![travis-ci](https://www.travis-ci.com/nnnewb/leancloud-better-storage-python.svg?branch=master)](https://www.travis-ci.com/nnnewb/leancloud-better-storage-python)
 [![codecov](https://codecov.io/gh/nnnewb/leancloud-better-storage-python/branch/master/graph/badge.svg)](https://codecov.io/gh/nnnewb/leancloud-better-storage-python)
+[![license](https://img.shields.io/badge/license-LGPL-brightgreen.svg)](https://github.com/nnnewb/leancloud-better-storage-python/blob/master/LICENSE)
+[![python-version](https://img.shields.io/badge/Python-3.5%2B-yellow.svg)](https://python.org)
 
 better leancloud storage wrapper. Simple and lightweight.
 
