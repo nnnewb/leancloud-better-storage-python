@@ -190,12 +190,27 @@ class TestModelQuery(TestCase):
         self.assertEqual(len(M.query().find()), 0)
 
     def test_invalid_connected_logical_ops(self):
-        class People(models.Model):
-            name = models.Field()
+        with self.assertRaises(QueryLogicalError):
+            self.People.query().filter_by(name='123').and_().and_().first()
+        with self.assertRaises(QueryLogicalError):
+            self.People.query().filter_by(name='123').and_().or_().first()
+        with self.assertRaises(QueryLogicalError):
+            self.People.query().filter_by(name='123').or_().or_().first()
 
-        with self.assertRaises(QueryLogicalError):
-            People.query().filter_by(name='123').and_().and_().first()
-        with self.assertRaises(QueryLogicalError):
-            People.query().filter_by(name='123').and_().or_().first()
-        with self.assertRaises(QueryLogicalError):
-            People.query().filter_by(name='123').or_().or_().first()
+    def test_get_leancloud_query(self):
+        # test get query by property `leancloud_query`
+        people = self.People.create()
+        self.assertIsInstance(people.query().leancloud_query, leancloud.Query)
+
+        # test get query by method `build_query`
+        self.assertIsInstance(people.query().build_query(), leancloud.Query)
+
+    def test_query_limit(self):
+        self.People.commit_all(*[self.People.create() for _ in range(10)])
+        results = self.People.query().limit(1).find()
+        self.assertEqual(len(results), 1)
+
+    def test_query_skip(self):
+        self.People.commit_all(*[self.People.create(age=age) for age in range(10)])
+        result = self.People.query().order_by(self.People.age.asc).skip(5).first()
+        self.assertEqual(result.age, 5)
