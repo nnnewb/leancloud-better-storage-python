@@ -137,9 +137,8 @@ class BooleanField(Field):
 
 class DateTimeField(Field):
 
-    def __init__(self, name=None, nullable=True, default=undefined, type_=None, auto_now=False, auto_now_add=False,
+    def __init__(self, name=None, nullable=True, default=undefined, auto_now=False, auto_now_add=False,
                  now_fn=datetime.now):
-        super().__init__(name, nullable, default, type_)
         self._auto_now = auto_now
         self._auto_now_add = auto_now_add
         self._now_fn = now_fn
@@ -170,8 +169,8 @@ class GeoPointField(Field):
 
 class RefField(Field):
 
-    def __init__(self, name=None, nullable=True, default=undefined, type_=None, ref_cls=None, lazy=True):
-        super().__init__(name, nullable, default, type_)
+    def __init__(self, name=None, nullable=True, default=undefined, ref_cls=None, lazy=True):
+        super().__init__(name, nullable, default, None)
         self._ref_cls = ref_cls
         self.lazy = lazy
 
