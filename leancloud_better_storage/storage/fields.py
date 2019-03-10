@@ -1,3 +1,5 @@
+from datetime import datetime
+
 import leancloud
 
 from leancloud_better_storage.storage.order import OrderBy, ResultElementOrder
@@ -92,6 +94,12 @@ class Field(object):
     def __set__(self, instance, value):
         instance.lc_object.set(self.field_name, value)
 
+    def _after_model_created(self, model, name):
+        self._cls_name = model.__lc_cls__
+        self._model = model
+        if self._field_name is None:
+            self._field_name = name
+
     # question: any behavior when user say wanna to delete a field ?
 
 
@@ -108,7 +116,20 @@ class BooleanField(Field):
 
 
 class DateTimeField(Field):
-    pass
+
+    def __init__(self, name=None, nullable=True, default=undefined, type_=None, auto_now=False, auto_now_add=False,
+                 now_fn=datetime.now):
+        super().__init__(name, nullable, default, type_)
+        self._auto_now = auto_now
+        self._auto_now_add = auto_now_add
+        self._now_fn = now_fn
+
+    def _after_model_created(self, model, name):
+        super()._after_model_created(model, name)
+        if self._auto_now_add:
+            model.register_pre_create_hook(lambda instance: instance.lc_object.set(self.field_name, self._now_fn()))
+        if self._auto_now:
+            model.register_pre_update_hook(lambda instance: instance.lc_object.set(self.field_name, self._now_fn()))
 
 
 class FileField(Field):

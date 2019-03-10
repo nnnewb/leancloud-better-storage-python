@@ -1,10 +1,11 @@
+from copy import copy, deepcopy
 from enum import Enum
 
 import leancloud
 
-from leancloud_better_storage.storage.pages import Pages
 from leancloud_better_storage.storage.err import LeanCloudErrorCode
 from leancloud_better_storage.storage.order import ResultElementOrder
+from leancloud_better_storage.storage.pages import Pages
 
 
 class ConditionOperator(Enum):
@@ -56,160 +57,117 @@ class Condition(object):
         return query
 
 
-class QueryLinkRelation(Enum):
-    """ logic relation between two query """
-    RelationAnd = 'and'
-    RelationOr = 'or'
-
-
-class QueryLink(object):
-    """
-    linked query pointer with relation information between queries.
-    """
-
-    def __init__(self, query, relation):
-        self.query = query
-        self.relation = relation
+class QueryLogicalError(Exception):
+    pass
 
 
 class Query(object):
     """ query class """
 
-    @property
-    def _first(self):
-        through_nodes_set = set()
-        cur = self
-        while cur._prev is not None:
-            through_nodes_set.add(cur)
-            cur = cur._prev.query
-            if cur in through_nodes_set:
-                raise ValueError('Found loop inside linked query!')
-        return cur
+    class State(Enum):
+        BEGIN = -1
+        COND = 0
+        AND = 1
+        OR = 2
 
-    @property
-    def _last(self):
-        through_nodes_set = set()
-        cur = self
-        while cur._next is not None:
-            through_nodes_set.add(cur)
-            cur = cur._next
-            if cur in through_nodes_set:
-                raise ValueError('Found loop inside linked query!')
-        return cur
-
-    def __init__(self, model, prev=None, next_=None):
-        """
-        initializer of Query class
-
-        data structure just like linked list, their is logical operation `and`/`or` between two query .
-
-        :param model: storage model
-        :type model: type
-        :param prev: previous linked query
-        :type prev: leancloud_better_storage.storage.query.QueryLink
-        :param next_: next linked query
-        :type next_: leancloud_better_storage.storage.query.QueryLink
-        """
+    def __init__(self, model, **kwargs):
         self._model = model
-        self._prev = prev
-        self._next = next_
-        self._conditions = []
-        self._result_limit = 100
-        self._skip_elements = 0
-        self._order_by_elements = []
-        self._includes = []
+        self._state = kwargs.get('_state', self.State.BEGIN)
+        self._query = leancloud.Query(self._model.__lc_cls__)
+        self._last_logical_op = None
 
-    def build_query(self, _keep_going__=False):
-        """ build leancloud query. """
-        cur = self._first if _keep_going__ is False else self
-        queries = [*map(lambda cond: cond.apply(leancloud.Query(self._model.__lc_cls__)), cur._conditions)]
-        if len(queries) >= 2:
-            query = leancloud.Query.and_(*queries)
-        elif len(queries) >= 1:
-            query, = queries
-        else:
-            query = leancloud.Query(self._model.__lc_cls__)
+    def _merge_conditions(self, *conditions):
+        return leancloud.Query.and_(*map(
+            lambda cond: cond.apply(leancloud.Query(self._model.__lc_cls__)),
+            conditions
+        )) if len(conditions) >= 2 else \
+            conditions[0].apply(leancloud.Query(self._model.__lc_cls__))
 
-        if cur._next is not None:
-            if cur._next.relation == QueryLinkRelation.RelationAnd:
-                query = leancloud.Query.and_(query, cur._next.query.build_query(_keep_going__=True))
-            elif cur._next.relation == QueryLinkRelation.RelationOr:
-                query = leancloud.Query.or_(query, cur._next.query.build_query(_keep_going__=True))
-
-        for order_by in self._order_by_elements:
-            if order_by.order == ResultElementOrder.Ascending:
-                query.add_ascending(order_by.field.field_name)
-            elif order_by.order == ResultElementOrder.Descending:
-                query.add_descending(order_by.field.field_name)
-
-        if self._includes:
-            includes = []
-            for i in self._includes:
-                includes.append(i.field_name)
-            query = query.include(includes)
-
-        query.skip(self._skip_elements)
-        query.limit(self._result_limit)
-        return query
+    @property
+    def _logical_fn(self):
+        return leancloud.Query.and_ if self._last_logical_op in ('and', None) else leancloud.Query.or_
 
     def filter(self, *conditions):
         """ select data with custom conditions. """
-        self._conditions.extend(conditions)
+        self._state = self.State.COND
+        query = self._merge_conditions(*conditions)
+        self._query = self._logical_fn(self._query, query)
+        self._last_logical_op = None
+
         return self
 
     def filter_by(self, **kwargs):
         """ select data with equation conditions. """
+        self._state = self.State.COND
+
         input_key_set = set(kwargs.keys())
         fields_key_set = set(self._model.__fields__.keys())
 
-        if input_key_set.issubset(fields_key_set) is False:
+        if not input_key_set.issubset(fields_key_set):
             raise KeyError('Unknown fields {0}'.format(input_key_set - fields_key_set))
 
-        self._conditions.extend([self._model.__fields__[key] == val for key, val in kwargs.items()])
+        conditions = [self._model.__fields__[key] == val for key, val in kwargs.items()]
+        self._query = self._logical_fn(self._query, self._merge_conditions(*conditions))
+        self._last_logical_op = None
 
         return self
 
     def and_(self):
-        """ create new query and linked current query with and. """
-        return self._build_next(QueryLinkRelation.RelationAnd)
+        if self._state not in (self.State.BEGIN, self.State.COND):
+            raise QueryLogicalError('Should not connect two logical operation.')
+        self._state = self.State.AND
+        self._last_logical_op = 'and'
+
+        return self
 
     def or_(self):
-        """ create new query and linked current query with or. """
-        return self._build_next(QueryLinkRelation.RelationOr)
+        if self._state not in (self.State.BEGIN, self.State.COND):
+            raise QueryLogicalError('Should not connect two logical operation.')
+        self._state = self.State.OR
+        self._last_logical_op = 'or'
+
+        return self
 
     def includes(self, *args):
-        self._includes = args
+        for field in args:
+            from leancloud_better_storage.storage.fields import Field
+            if not isinstance(field, Field):
+                raise ValueError(
+                    'Unexpected argument {}, includes(...) only take {} instance as argument.'.format(repr(field),
+                                                                                                      Field.__name__))
+            self._query.include(*(field.field_name for field in args))
         return self
 
-    def first(self):
-        """ get first object match conditions. """
-        q = self.build_query()
-        try:
-            return self._model(q.first())
-        except leancloud.LeanCloudError as exc:
-            if exc.code == LeanCloudErrorCode.ClassOrObjectNotExists.ClassOrObjectNotExists.value:
-                return None
-            raise
-
-    def count(self):
-        """ count elements. """
-        q = self.build_query()
-        try:
-            return q.count()
-        except leancloud.LeanCloudError as exc:
-            if exc.code == LeanCloudErrorCode.ClassOrObjectNotExists.value:
-                return 0
-            raise
-
-    def order_by(self, *order_by):
-        self._validate_fields_belong_to_self(*map(lambda o: o.field, order_by))
-        self._order_by_elements.extend(order_by)
+    def skip(self, n):
+        self._query.skip(n)
         return self
+
+    def limit(self, n):
+        self._query.limit(n)
+        return self
+
+    def order_by(self, *args):
+        for arg in args:
+            if arg.order == ResultElementOrder.Ascending:
+                self._query.add_ascending(arg.field.field_name)
+            elif arg.order == ResultElementOrder.Descending:
+                self._query.add_descending(arg.field.field_name)
+
+        return self
+
+    def build_query(self):
+        """ 与之前的Query 的兼容性方案 """
+        return deepcopy(self._query)
+
+    @property
+    def leancloud_query(self):
+        return self._query
 
     def find(self, skip=0, limit=100):
-        self._skip_elements = skip
-        self._result_limit = limit
-        q = self.build_query()
+        # don't change the origin query object
+        q = copy(self._query)
+        q.skip(skip)
+        q.limit(limit)
 
         try:
             return [
@@ -221,22 +179,21 @@ class Query(object):
                 return []
             raise
 
+    def first(self):
+        try:
+            return self._model(self._query.first())
+        except leancloud.LeanCloudError as exc:
+            if exc.code == LeanCloudErrorCode.ClassOrObjectNotExists.ClassOrObjectNotExists.value:
+                return None
+            raise
+
+    def count(self):
+        try:
+            return self._query.count()
+        except leancloud.LeanCloudError as exc:
+            if exc.code == LeanCloudErrorCode.ClassOrObjectNotExists.value:
+                return 0
+            raise
+
     def paginate(self, page, size):
-        """ paginate query result which is leancloud default and recommend behavior. """
         return Pages(self, page, size)
-
-    def _build_next(self, rel):
-        curr_query = self._last
-        next_query = Query(self._model, curr_query)
-        prev_link = QueryLink(curr_query, rel)
-        next_query._prev = prev_link
-        next_link = QueryLink(next_query, rel)
-        curr_query._next = next_link
-
-        return next_query
-
-    def _validate_fields_belong_to_self(self, *fields):
-        for field in fields:
-            if field.model.__lc_cls__ != self._model.__lc_cls__:
-                return False
-        return True

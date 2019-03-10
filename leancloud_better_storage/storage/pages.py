@@ -30,8 +30,7 @@ class Pages(object):
     def items(self):
         """ get all element of current page. """
         if len(self._content_cache) == 0:
-            query = deepcopy(self._query)
-            self._content_cache = query.find(self.element_offset, self._size)
+            self._content_cache = self._query.find(self.element_offset, self._size)
         return self._content_cache
 
     @property
