@@ -77,15 +77,6 @@ class Field(object):
     def in_(self, other):
         return Condition(self, ConditionOperator.ContainedIn, other)
 
-    def contains(self, sub):
-        return Condition(self, ConditionOperator.Contains, sub)
-
-    def regex(self, pattern):
-        return Condition(self, ConditionOperator.Regex, pattern)
-
-    def startswith(self, pattern):
-        return Condition(self, ConditionOperator.StartsWith, pattern)
-
     def __get__(self, instance, owner):
         if instance:
             return instance.lc_object.get(self.field_name)
@@ -102,9 +93,38 @@ class Field(object):
 
     # question: any behavior when user say wanna to delete a field ?
 
+    @deprecated('Use String field instead.')
+    def contains(self, sub):
+        return Condition(self, ConditionOperator.Contains, sub)
+
+    @deprecated('Use String field instead.')
+    def regex(self, pattern):
+        return Condition(self, ConditionOperator.Regex, pattern)
+
+    @deprecated('Use String field instead.')
+    def startswith(self, pattern):
+        return Condition(self, ConditionOperator.StartsWith, pattern)
+
 
 class StringField(Field):
-    pass
+
+    def __init__(self, max_length, name=None, nullable=True, default=undefined):
+        super().__init__(name, nullable, default, None)
+        self._max_length = max_length
+
+    def __set__(self, instance, value):
+        if len(value) > self._max_length:
+            raise ValueError('string too long.')
+        super(StringField, self).__set__(instance, value)
+
+    def contains(self, sub):
+        return Condition(self, ConditionOperator.Contains, sub)
+
+    def regex(self, pattern):
+        return Condition(self, ConditionOperator.Regex, pattern)
+
+    def startswith(self, pattern):
+        return Condition(self, ConditionOperator.StartsWith, pattern)
 
 
 class NumberField(Field):
