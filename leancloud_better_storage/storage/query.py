@@ -163,11 +163,14 @@ class Query(object):
     def leancloud_query(self):
         return self._query
 
-    def find(self, skip=0, limit=100):
+    def find(self, skip=None, limit=None):
         # don't change the origin query object
         q = copy(self._query)
-        q.skip(skip)
-        q.limit(limit)
+
+        if skip:
+            q.skip(skip)
+        if limit:
+            q.limit(limit)
 
         try:
             return [
