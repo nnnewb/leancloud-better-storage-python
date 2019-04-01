@@ -6,6 +6,7 @@ import leancloud
 from leancloud_better_storage.storage.err import LeanCloudErrorCode
 from leancloud_better_storage.storage.order import ResultElementOrder
 from leancloud_better_storage.storage.pages import Pages
+from leancloud_better_storage.storage.cursor import Cursor
 
 
 class ConditionOperator(Enum):
@@ -181,6 +182,9 @@ class Query(object):
             if exc.code == LeanCloudErrorCode.ClassOrObjectNotExists.value:
                 return []
             raise
+
+    def scan(self, batch_size, scan_key):
+        return Cursor(self._model, self._query.scan(batch_size, scan_key))
 
     def first(self):
         try:
