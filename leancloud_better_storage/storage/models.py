@@ -1,4 +1,5 @@
 from copy import deepcopy
+from leancloud_better_storage.storage._util import ThreadSafeDict
 
 import leancloud
 
@@ -30,7 +31,11 @@ def _merge_default_and_args(schema, args):
     return attrs
 
 
-model_registry = {}
+class ModelRegistry(ThreadSafeDict):
+    pass
+
+
+model_registry = ModelRegistry()
 
 
 class ModelMeta(type):
