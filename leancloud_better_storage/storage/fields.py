@@ -4,6 +4,7 @@ import leancloud
 
 from leancloud_better_storage.storage.order import OrderBy, ResultElementOrder
 from leancloud_better_storage.storage.query import Condition, ConditionOperator
+from leancloud_better_storage.storage._util import deprecated
 
 FIELD_AVAILABLE_TYPES = [int, float, str, list, dict, None]
 
@@ -28,6 +29,7 @@ class Field(object):
         return self._field_nullable
 
     @property
+    @deprecated('')
     def field_type(self):
         return self._field_type
 
@@ -139,6 +141,7 @@ class DateTimeField(Field):
 
     def __init__(self, name=None, nullable=True, default=undefined, auto_now=False, auto_now_add=False,
                  now_fn=datetime.now):
+        super().__init__(name, nullable, default, None)
         self._auto_now = auto_now
         self._auto_now_add = auto_now_add
         self._now_fn = now_fn

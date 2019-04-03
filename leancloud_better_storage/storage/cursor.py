@@ -1,6 +1,7 @@
 class Cursor:
     def __init__(self, cursor, model):
         self._cursor = cursor
+        self._cursor_iter = iter(self._cursor)
         self._cls = model
 
     @property
@@ -11,5 +12,4 @@ class Cursor:
         return self
 
     def __next__(self):
-        n = next(self._cursor)
-        yield self._cls(n)
+        return self._cls(next(self._cursor_iter))
