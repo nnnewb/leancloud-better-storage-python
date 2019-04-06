@@ -4,13 +4,10 @@ import leancloud
 
 from leancloud_better_storage.storage import models, fields
 
-from tests.utils import setup
-
 
 class TestModelQuery(TestCase):
 
     def setUp(self):
-        setup()
         self.cls_name = 'TestModel'
 
         class ModelA(models.Model):

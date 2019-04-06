@@ -4,14 +4,11 @@ import leancloud
 
 from leancloud_better_storage.storage import models, fields
 
-from tests.utils import setup
 
-
-class TestModelCreation(TestCase):
+class TestAccess(TestCase):
 
     def setUp(self):
         self.cls_name = 'TestModel'
-        setup()
 
     def tearDown(self):
         while True:

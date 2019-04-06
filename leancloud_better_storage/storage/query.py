@@ -3,6 +3,7 @@ from enum import Enum
 
 import leancloud
 
+from leancloud_better_storage.storage.cursor import Cursor
 from leancloud_better_storage.storage.err import LeanCloudErrorCode
 from leancloud_better_storage.storage.order import ResultElementOrder
 from leancloud_better_storage.storage.pages import Pages
@@ -53,7 +54,7 @@ class Condition(object):
         return self._operator
 
     def apply(self, query):
-        self.operator_mapping[self._operator](query, self._operand_left.field_name, self._operand_right)
+        self.operator_mapping[self.operator](query, self.operand_left.field_name, self.operand_right)
         return query
 
 
@@ -178,6 +179,9 @@ class Query(object):
             if exc.code == LeanCloudErrorCode.ClassOrObjectNotExists.value:
                 return []
             raise
+
+    def scan(self, batch_size=None, scan_key=None):
+        return Cursor(self._query.scan(batch_size, scan_key), self._model)
 
     def first(self):
         try:

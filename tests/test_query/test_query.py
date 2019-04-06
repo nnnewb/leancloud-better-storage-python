@@ -4,13 +4,11 @@ import leancloud
 
 from leancloud_better_storage.storage import models, fields
 from leancloud_better_storage.storage.query import QueryLogicalError
-from tests.utils import setup
 
 
-class TestModelQuery(TestCase):
+class TestQuery(TestCase):
 
     def setUp(self):
-        setup()
 
         class People(models.Model):
             __lc_cls__ = 'TEST_People'

@@ -3,7 +3,7 @@ from unittest import TestCase
 from leancloud_better_storage.storage import models, fields
 
 
-class TestModelDeclaration(TestCase):
+class TestDeclaration(TestCase):
 
     def test_declare_model(self):
         class Person(models.Model):

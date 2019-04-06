@@ -3,13 +3,11 @@ from unittest import TestCase
 import leancloud
 
 from leancloud_better_storage.storage import models, fields
-from tests.utils import setup
 
 
-class TestModelQuery(TestCase):
+class TestDrop(TestCase):
 
     def setUp(self):
-        setup()
         self.cls_name = 'TestModel'
 
         class Person(models.Model):

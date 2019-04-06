@@ -4,14 +4,12 @@ import leancloud
 
 from leancloud_better_storage.storage.fields import Field
 from leancloud_better_storage.storage.models import Model
-from tests.utils import setup
 
 
 class TestLifeCycleHook(TestCase):
 
     def setUp(self):
         self.cls_name = 'FieldTypeTest'
-        setup()
 
     def tearDown(self):
         try:
@@ -21,7 +19,8 @@ class TestLifeCycleHook(TestCase):
 
     def test_created_hook(self):
 
-        class Created(Exception): pass
+        class Created(Exception):
+            pass
 
         def fn(instance):
             raise Created()
@@ -36,7 +35,8 @@ class TestLifeCycleHook(TestCase):
 
     def test_updated_hook(self):
 
-        class Updated(Exception): pass
+        class Updated(Exception):
+            pass
 
         def fn(instance):
             raise Updated()
@@ -52,7 +52,8 @@ class TestLifeCycleHook(TestCase):
 
     def test_deleted_hook(self):
 
-        class Deleted(Exception): pass
+        class Deleted(Exception):
+            pass
 
         def fn(instance):
             raise Deleted()
@@ -81,7 +82,8 @@ class TestLifeCycleHook(TestCase):
                 a = CustomField()
 
     def test_inherit_created_hook(self):
-        class Created(Exception): pass
+        class Created(Exception):
+            pass
 
         def fn(instance):
             raise Created()
@@ -99,7 +101,8 @@ class TestLifeCycleHook(TestCase):
             instance.commit()
 
     def test_inherit_updated_hook(self):
-        class Updated(Exception): pass
+        class Updated(Exception):
+            pass
 
         def fn(instance):
             raise Updated()
@@ -118,7 +121,8 @@ class TestLifeCycleHook(TestCase):
             instance.commit()
 
     def test_inherit_deleted_hook(self):
-        class Deleted(Exception): pass
+        class Deleted(Exception):
+            pass
 
         def fn(instance):
             raise Deleted()

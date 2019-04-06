@@ -6,6 +6,7 @@ from leancloud_better_storage.storage._util import deprecated
 from leancloud_better_storage.storage.objectid import ObjectId
 from leancloud_better_storage.storage.order import OrderBy, ResultElementOrder
 from leancloud_better_storage.storage.query import Condition, ConditionOperator
+from leancloud_better_storage.storage._util import deprecated
 
 FIELD_AVAILABLE_TYPES = [int, float, str, list, dict, None]
 
@@ -48,6 +49,7 @@ class Field(object, metaclass=MetaField):
         return self._field_nullable
 
     @property
+    @deprecated('')
     def field_type(self):
         return self._field_type
 

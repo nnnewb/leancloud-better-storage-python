@@ -8,6 +8,9 @@ mypy="*"
 flake8="*"
 autopep8 = "*"
 coverage = "*"
+pytest-cov = "*"
+python-dotenv = {extras = ["cli"],version = "*"}
+codecov = "*"
 better-exceptions = "*"
 
 [packages]

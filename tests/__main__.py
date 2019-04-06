@@ -1,7 +1,3 @@
-from unittest import defaultTestLoader
-from unittest.runner import TextTestRunner
-from os.path import dirname
+import pytest
 
-runner = TextTestRunner()
-suite = defaultTestLoader.discover(dirname(__file__))
-runner.run(suite)
+pytest.main()

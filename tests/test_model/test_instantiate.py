@@ -3,15 +3,13 @@ from unittest import TestCase
 import leancloud
 
 from leancloud_better_storage.storage import models, fields
-from tests.utils import setup
 
 
-class TestModelCreation(TestCase):
+class TestInstantiate(TestCase):
 
     def setUp(self):
         self.cls_name = 'TestModel'
         self.cls_names = [self.cls_name, 'TestModelA', 'TestModelB']
-        setup()
 
     def tearDown(self):
         for cls_name in self.cls_names:
