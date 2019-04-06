@@ -1,7 +1,9 @@
 from datetime import datetime
 
-import leancloud
+from leancloud import Object
 
+from leancloud_better_storage.storage._util import deprecated
+from leancloud_better_storage.storage.objectid import ObjectId
 from leancloud_better_storage.storage.order import OrderBy, ResultElementOrder
 from leancloud_better_storage.storage.query import Condition, ConditionOperator
 
@@ -16,12 +18,30 @@ class auto_fill:
     pass
 
 
-class Field(object):
-    __hash__ = object.__hash__
+class MetaField(type):
+
+    def __new__(mcs, name, bases, attributes):
+        created = type.__new__(mcs, name, bases, attributes)
+        created.__hash__ = object.__hash__
+        return created
+
+
+class Field(object, metaclass=MetaField):
 
     @property
     def field_name(self):
         return self._field_name
+
+    @property
+    def attr_name(self):
+        return self._attr_name
+
+    @attr_name.setter
+    def attr_name(self, name):
+        if not self._attr_name:
+            self._attr_name = name
+        else:
+            raise AttributeError('attr_name should only assigned once by ModelMeta.')
 
     @property
     def nullable(self):
@@ -49,6 +69,7 @@ class Field(object):
 
     def __init__(self, name=None, nullable=True, default=undefined, type_=None):
         self._model = None
+        self._attr_name = None
         self._field_name = name
         self._field_nullable = nullable
         self._field_default = default
@@ -83,6 +104,8 @@ class Field(object):
         return self
 
     def __set__(self, instance, value):
+        if value is undefined:
+            instance.lc_object.unset(self.field_name, value)
         instance.lc_object.set(self.field_name, value)
 
     def _after_model_created(self, model, name):
@@ -108,12 +131,12 @@ class Field(object):
 
 class StringField(Field):
 
-    def __init__(self, max_length, name=None, nullable=True, default=undefined):
+    def __init__(self, max_length=None, name=None, nullable=True, default=undefined):
         super().__init__(name, nullable, default, None)
-        self._max_length = max_length
+        self.max_length = max_length
 
     def __set__(self, instance, value):
-        if len(value) > self._max_length:
+        if self.max_length and len(value) > self.max_length:
             raise ValueError('string too long.')
         super(StringField, self).__set__(instance, value)
 
@@ -139,16 +162,21 @@ class DateTimeField(Field):
 
     def __init__(self, name=None, nullable=True, default=undefined, auto_now=False, auto_now_add=False,
                  now_fn=datetime.now):
+        super().__init__(name, nullable, default, None)
         self._auto_now = auto_now
         self._auto_now_add = auto_now_add
         self._now_fn = now_fn
 
     def _after_model_created(self, model, name):
         super()._after_model_created(model, name)
+
+        def hook_fn(i):
+            return i.lc_object.set(self.field_name, self._now_fn())
+
         if self._auto_now_add:
-            model.register_pre_create_hook(lambda instance: instance.lc_object.set(self.field_name, self._now_fn()))
+            model.register_pre_create_hook(hook_fn)
         if self._auto_now:
-            model.register_pre_update_hook(lambda instance: instance.lc_object.set(self.field_name, self._now_fn()))
+            model.register_pre_update_hook(hook_fn)
 
 
 class FileField(Field):
@@ -168,11 +196,29 @@ class GeoPointField(Field):
 
 
 class RefField(Field):
+    __hash__ = object.__hash__
+    _fit_fn = {
+        ObjectId: lambda val: val.lc_object,
+        int: lambda val: ObjectId(str(val)).lc_object,
+        str: lambda val: ObjectId(hex(val)[2:]).lc_object,
+    }
 
     def __init__(self, name=None, nullable=True, default=undefined, ref_cls=None, lazy=True):
         super().__init__(name, nullable, default, None)
         self._ref_cls = ref_cls
         self.lazy = lazy
+
+    def __eq__(self, other):
+        return Condition(self, ConditionOperator.Equal, self._fit_fn[type(other)](other))
+
+    def __ne__(self, other):
+        return Condition(self, ConditionOperator.NotEqual, self._fit_fn[type(other)](other))
+
+    def __lt__(self, other):
+        raise ValueError('RefField not support `<` comparison.')
+
+    def __gt__(self, other):
+        raise ValueError('RefField not support `>` comparison.')
 
     def __get__(self, instance, owner):
         if instance is None:
@@ -188,19 +234,28 @@ class RefField(Field):
 
         return self.ref_cls(obj)
 
+    def __set__(self, instance, value):
+        if value is undefined or value is None:
+            super().__set__(instance, value)
+        else:
+            try:
+                instance.lc_object.set(self.field_name, self._fit_fn[type(value)](value))
+            except KeyError:
+                from leancloud_better_storage.storage.models import Model
+                if isinstance(value, Model):
+                    instance.lc_object.set(self.field_name, value.lc_object)
+                elif isinstance(value, Object):
+                    instance.lc_object.set(self.field_name, value)
+                else:
+                    raise ValueError('Unexpected ref field assignment: {}'.format(repr(value)))
+
     @property
     def ref_cls(self):
         if isinstance(self._ref_cls, str):
-            from leancloud_better_storage.storage.models import model_registry
+            from leancloud_better_storage.storage.meta import model_registry
             self._ref_cls = model_registry[self._ref_cls]
 
         return self._ref_cls
-
-    def __set__(self, instance, value):
-        if isinstance(value, leancloud.Object):
-            instance.lc_object.set(self.field_name, value)
-        elif isinstance(value, self.ref_cls):
-            instance.lc_object.set(self.field_name, value.lc_object)
 
 
 class AnyField(Field):

@@ -173,10 +173,7 @@ class Query(object):
             q.limit(limit)
 
         try:
-            return [
-                self._model(obj)
-                for obj in q.find()
-            ]
+            return (*map(self._model, q.find()),)
         except leancloud.LeanCloudError as exc:
             if exc.code == LeanCloudErrorCode.ClassOrObjectNotExists.value:
                 return []

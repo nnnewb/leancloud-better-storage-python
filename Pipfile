@@ -8,6 +8,7 @@ mypy="*"
 flake8="*"
 autopep8 = "*"
 coverage = "*"
+better-exceptions = "*"
 
 [packages]
 leancloud="==2.1.8"
