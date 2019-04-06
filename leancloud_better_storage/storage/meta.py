@@ -22,7 +22,12 @@ class ModelMetaInfo:
     def attributes_default(self):
         return self._default_attributes
 
-    def __init__(self, fields, inherit_fields, required_fields, attributes_default):
+    @property
+    def leancloud_class(self):
+        return self._leancloud_class
+
+    def __init__(self, leancloud_class, fields, inherit_fields, required_fields, attributes_default):
+        self._leancloud_class = leancloud_class
         self._fields = fields
         self._inherit_fields = inherit_fields
         self._required_fields = required_fields
@@ -73,8 +78,12 @@ class ModelMeta(type):
             attr['__lc_cls__'] = name
 
         # collect meta data
-        attr['__meta__'] = ModelMetaInfo(fields, inherit_fields, required_fields, attributes_default)
-        attr['__fields__'] = fields
+        attr['__meta__'] = ModelMetaInfo(attr['__lc_cls__'],
+                                         fields,
+                                         inherit_fields,
+                                         required_fields,
+                                         attributes_default)
+        attr['__fields__'] = fields  # keep compatible with previous version
 
         # inject hook table
         attr['_pre_create_hook'] = []

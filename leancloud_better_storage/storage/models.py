@@ -7,7 +7,7 @@ from leancloud_better_storage.storage.query import Query
 
 class Model(object, metaclass=ModelMeta):
     __lc_cls__ = ''
-    __fields__ = {}  # type: dict
+    __fields__ = {}
 
     object_id = Field('objectId', default=auto_fill)
     created_at = Field('createdAt', default=auto_fill)
