@@ -33,6 +33,17 @@ class Field(object, metaclass=MetaField):
         return self._field_name
 
     @property
+    def attr_name(self):
+        return self._attr_name
+
+    @attr_name.setter
+    def attr_name(self, name):
+        if not self._attr_name:
+            self._attr_name = name
+        else:
+            raise AttributeError('attr_name should only assigned once by ModelMeta.')
+
+    @property
     def nullable(self):
         return self._field_nullable
 
@@ -58,6 +69,7 @@ class Field(object, metaclass=MetaField):
 
     def __init__(self, name=None, nullable=True, default=undefined, type_=None):
         self._model = None
+        self._attr_name = None
         self._field_name = name
         self._field_nullable = nullable
         self._field_default = default
@@ -119,12 +131,12 @@ class Field(object, metaclass=MetaField):
 
 class StringField(Field):
 
-    def __init__(self, max_length, name=None, nullable=True, default=undefined):
+    def __init__(self, max_length=None, name=None, nullable=True, default=undefined):
         super().__init__(name, nullable, default, None)
-        self._max_length = max_length
+        self.max_length = max_length
 
     def __set__(self, instance, value):
-        if len(value) > self._max_length:
+        if self.max_length and len(value) > self.max_length:
             raise ValueError('string too long.')
         super(StringField, self).__set__(instance, value)
 
@@ -158,7 +170,8 @@ class DateTimeField(Field):
     def _after_model_created(self, model, name):
         super()._after_model_created(model, name)
 
-        def hook_fn(i): return i.lc_object.set(self.field_name, self._now_fn())
+        def hook_fn(i):
+            return i.lc_object.set(self.field_name, self._now_fn())
 
         if self._auto_now_add:
             model.register_pre_create_hook(hook_fn)
@@ -239,7 +252,7 @@ class RefField(Field):
     @property
     def ref_cls(self):
         if isinstance(self._ref_cls, str):
-            from leancloud_better_storage.storage.models import model_registry
+            from leancloud_better_storage.storage.meta import model_registry
             self._ref_cls = model_registry[self._ref_cls]
 
         return self._ref_cls
