@@ -1,5 +1,27 @@
 import logging
 from functools import wraps
+from threading import Lock
+from collections import UserDict
+
+
+class ThreadSafeDict(UserDict):
+    """ Thread safe dictionary.
+    线程安全的字典。
+
+    todo: that's awful, need improvement.
+    """
+
+    def __init__(self, from_dictionary=None, **kwargs):
+        self._lock = Lock()
+        super().__init__(from_dictionary if from_dictionary else {}, **kwargs)
+
+    def __setitem__(self, key, item):
+        with self._lock:
+            return super().__setitem__(key, item)
+
+    def __getitem__(self, key):
+        with self._lock:
+            return super().__getitem__(key)
 
 
 def cache_result(cache_location='fn'):  # pragma: no cover

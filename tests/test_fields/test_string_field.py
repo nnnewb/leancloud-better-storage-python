@@ -7,7 +7,7 @@ from leancloud_better_storage.storage.models import Model
 @pytest.fixture()
 def model_cls():
     class Person(Model):
-        name = StringField(max_length=8)
+        name = StringField()
 
     Person.clear()
 
@@ -17,14 +17,18 @@ def model_cls():
 
 
 def test_break_maximum_when_assign(model_cls):
+    model_cls.name.max_length = 8
     man = model_cls.create(name='1234')
     with pytest.raises(ValueError):
         man.name = '123456789'  # too long
+    model_cls.name.max_length = None
 
 
 def test_break_maximum_when_create(model_cls):
+    model_cls.name.max_length = 8
     with pytest.raises(ValueError):
         model_cls.create(name='123456789')  # too long
+    model_cls.name.max_length = None
 
 
 def test_contains(model_cls):

@@ -11,6 +11,7 @@ coverage = "*"
 pytest-cov = "*"
 python-dotenv = {extras = ["cli"],version = "*"}
 codecov = "*"
+better-exceptions = "*"
 
 [packages]
 leancloud="==2.1.8"

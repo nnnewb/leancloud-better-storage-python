@@ -2,7 +2,8 @@ from unittest import TestCase
 
 import leancloud
 
-from leancloud_better_storage.storage import models, fields
+from leancloud_better_storage.storage import models
+from leancloud_better_storage.storage.fields import Field
 
 
 class TestModelQuery(TestCase):
@@ -13,8 +14,8 @@ class TestModelQuery(TestCase):
         class ModelA(models.Model):
             __lc_cls__ = self.cls_name
 
-            name = fields.Field()
-            age = fields.Field()
+            name = Field()
+            age = Field()
 
         self.Model = ModelA
 

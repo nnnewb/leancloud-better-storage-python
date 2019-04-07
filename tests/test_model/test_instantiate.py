@@ -2,7 +2,8 @@ from unittest import TestCase
 
 import leancloud
 
-from leancloud_better_storage.storage import models, fields
+from leancloud_better_storage.storage import models
+from leancloud_better_storage.storage.fields import Field
 
 
 class TestInstantiate(TestCase):
@@ -21,14 +22,14 @@ class TestInstantiate(TestCase):
     def test_simple_create(self):
         class PersonA(models.Model):
             __lc_cls__ = self.cls_name
-            name = fields.Field()
+            name = Field()
 
         instance = PersonA.create(name='my name')
         self.assertEqual(instance.lc_object.get('name'), 'my name')
 
         class PersonB(models.Model):
             __lc_cls__ = self.cls_name
-            name = fields.Field('NameField')
+            name = Field('NameField')
 
         instance = PersonB.create(name='my name')
         self.assertEqual(instance.lc_object.get('NameField'), 'my name')
@@ -36,7 +37,7 @@ class TestInstantiate(TestCase):
     def test_create_miss_required(self):
         class Person(models.Model):
             __lc_cls__ = self.cls_name
-            name = fields.Field(nullable=False)
+            name = Field(nullable=False)
 
         with self.assertRaises(KeyError):
             Person.create()
@@ -51,11 +52,11 @@ class TestInstantiate(TestCase):
     def test_simple_create_inherit(self):
         class BaseModel(models.Model):
             __lc_cls__ = self.cls_name
-            name = fields.Field()
+            name = Field()
 
         class PersonA(BaseModel):
             __lc_cls__ = self.cls_names[1]
-            age = fields.Field()
+            age = Field()
 
         class PersonB(BaseModel):
             __lc_cls__ = self.cls_names[2]
@@ -72,7 +73,7 @@ class TestInstantiate(TestCase):
     def test_simple_commit(self):
         class Person(models.Model):
             __lc_cls__ = self.cls_name
-            name = fields.Field()
+            name = Field()
 
         person = Person.create(name='Hello world')
         person.commit()
@@ -81,7 +82,7 @@ class TestInstantiate(TestCase):
     def test_bulk_commit(self):
         class Person(models.Model):
             __lc_cls__ = self.cls_name
-            name = fields.Field()
+            name = Field()
 
         persons = [
             Person.create(name='Hi {0}'.format(i))
@@ -92,7 +93,7 @@ class TestInstantiate(TestCase):
     def test_create_with_default(self):
         class Person(models.Model):
             __lc_cls__ = self.cls_name
-            name = fields.Field(nullable=False, default='Hi')
+            name = Field(nullable=False, default='Hi')
 
         person = Person.create()
         self.assertEqual(person.name, 'Hi')

@@ -1,83 +1,8 @@
-from copy import deepcopy
-
 import leancloud
 
-from leancloud_better_storage.storage.fields import Field, undefined, auto_fill
+from leancloud_better_storage.storage.fields import Field, auto_fill
+from leancloud_better_storage.storage.meta import ModelMeta
 from leancloud_better_storage.storage.query import Query
-
-
-def _validate(schema, input_):
-    required_fields = {*filter(lambda field: field.nullable is False and field.default is undefined, schema.values())}
-    required_keys = {key for key, field in schema.items() if field in required_fields}
-    input_keys = {*input_.keys()}
-
-    if not input_keys.issubset(set(schema.keys())):
-        raise KeyError("Unknown field name {}".format(input_keys - {*schema.keys()}))
-    elif not required_keys.issubset(input_keys):
-        raise KeyError("Missing required field {}".format(required_keys - input_keys))
-
-
-def _merge_default_and_args(schema, args):
-    attrs = {
-        field.field_name: field.default() if callable(field.default) else field.default
-        for field in filter(lambda field: field.default not in (undefined, auto_fill), schema.values())
-        if field.nullable or field.default
-    }
-    attrs.update({
-        schema[key].field_name: value
-        for key, value in args.items()
-    })
-    return attrs
-
-
-model_registry = {}
-
-
-class ModelMeta(type):
-    """
-    Model 元类，收集类字段相关信息，完成初始化默认字段名和注册必须的回调。
-    """
-    _fields_key = '__fields__'
-    _lc_cls_key = '__lc_cls__'
-
-    @classmethod
-    def _merge_parent_fields(mcs, bases):
-        fields = {}
-
-        for bcs in bases:
-            fields.update(deepcopy(getattr(bcs, '__fields__', {})))
-
-        return fields
-
-    def __new__(mcs, name, bases, attr):
-        # merge super classes fields into __fields__ dictionary.
-        fields = attr.get(mcs._fields_key, {})
-        fields.update(mcs._merge_parent_fields(bases))
-
-        # Insert fields into __fields__ dictionary.
-        # It will replace super classes same named fields.
-        for key, val in attr.items():
-            if isinstance(val, Field):
-                fields[key] = val
-
-        attr[mcs._fields_key] = fields
-
-        # if __lc_cls__ not set, set it as same as python class name.
-        lc_cls = attr.get(mcs._lc_cls_key, name)
-        attr[mcs._lc_cls_key] = lc_cls
-
-        attr['_pre_create_hook'] = []
-        attr['_pre_update_hook'] = []
-        attr['_pre_delete_hook'] = []
-
-        # Tag fields with created model class and its __lc_cls__.
-        created = type.__new__(mcs, name, bases, attr)
-
-        for key, field in created.__fields__.items():
-            field._after_model_created(created, key)
-
-        model_registry[name] = created
-        return created
 
 
 class Model(object, metaclass=ModelMeta):
@@ -107,7 +32,7 @@ class Model(object, metaclass=ModelMeta):
     关于可以使用的字段类，请参考 :ref:`leancloud_better_storage.storage.fields`。
     """
     __lc_cls__ = ''
-    __fields__ = {}  # type: dict
+    __fields__ = {}
 
     object_id = Field('objectId', default=auto_fill)
     created_at = Field('createdAt', default=auto_fill)
@@ -172,10 +97,25 @@ class Model(object, metaclass=ModelMeta):
         :param kwargs: 初始化字段
         :return:
         """
-        _validate(cls.__fields__, kwargs)
-        return cls(leancloud.Object.create(cls.__lc_cls__, **_merge_default_and_args(cls.__fields__, kwargs)))
+        # check does given keyword arguments matches model schema
+        input_keys = set(kwargs.keys())
+        required_keys = set(cls.__meta__.required_fields.keys())
+        all_keys = set(cls.__meta__.fields.keys())
 
-    def commit(self):
+        if not input_keys.issubset(all_keys):
+            raise KeyError("Unknown field name {}".format(input_keys - all_keys))
+        elif not required_keys.issubset(input_keys):
+            raise KeyError("Missing required field {}".format(required_keys - input_keys))
+
+        # fill fields and DO NOT BREAK field restriction
+        lc_obj = leancloud.Object.create(cls.__lc_cls__)
+        obj = cls(lc_obj)
+        for attr_name, value in dict(cls.__meta__.attributes_default, **kwargs).items():
+            setattr(obj, attr_name, value() if callable(value) else value)
+
+        return obj
+
+    def commit(self, where=None, fetch_when_save=None):
         """
         保存这个对象到 LeanCloud。
 
@@ -185,8 +125,14 @@ class Model(object, metaclass=ModelMeta):
 
         :return: self
         """
+        if where:
+            if not isinstance(where, (leancloud.Query, Query)):
+                raise ValueError('Param `where` should be instance of storage.query.Query or leancloud.Query.')
+            if isinstance(where, Query):
+                where = where.leancloud_query
+
         self._do_life_cycle_hook('pre_create' if self.object_id is None else 'pre_update')
-        self._lc_obj.save()
+        self._lc_obj.save(where, fetch_when_save)
         return self
 
     @classmethod
