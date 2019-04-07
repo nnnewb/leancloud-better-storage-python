@@ -126,10 +126,13 @@ class Model(object, metaclass=ModelMeta):
         :return: self
         """
         if where:
-            if not isinstance(where, Query):
-                raise ValueError('Param `where` should be instance of Query.')
+            if not isinstance(where, (leancloud.Query, Query)):
+                raise ValueError('Param `where` should be instance of storage.query.Query or leancloud.Query.')
+            if isinstance(where, Query):
+                where = where.leancloud_query
+
         self._do_life_cycle_hook('pre_create' if self.object_id is None else 'pre_update')
-        self._lc_obj.save(where.leancloud_query if where else None, fetch_when_save)
+        self._lc_obj.save(where, fetch_when_save)
         return self
 
     @classmethod
