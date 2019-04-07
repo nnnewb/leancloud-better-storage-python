@@ -17,9 +17,11 @@ class ConditionOperator(Enum):
     LessThan = '<'
     LessThanOrEqualTo = '<='
     StartsWith = 'startswith'  # query.startswith
-    Contains = 'in'  # qeury.contains
+    Contains = 'in'  # query.contains
     ContainedIn = 'in_'  # query.contained_in
     Regex = 'regex'  # query.matched
+    Near = 'near'  # query.near
+    WithinKilometers = 'within_kilometers'  # query.within_kilometers
 
 
 class Condition(object):
@@ -34,6 +36,8 @@ class Condition(object):
         ConditionOperator.ContainedIn: lambda q, l, r: q.contained_in(l, r),
         ConditionOperator.Regex: lambda q, l, r: q.matched(l, r),
         ConditionOperator.StartsWith: lambda q, l, r: q.startswith(l, r),
+        ConditionOperator.Near: lambda q, l, r: q.near(l, r),
+        ConditionOperator.WithinKilometers: lambda q, l, r: q.within_kilometers(l, *r),
     }
 
     def __init__(self, operand_left, operator, operand_right):
@@ -78,15 +82,19 @@ class Query(object):
         self._last_logical_op = None
 
     def _merge_conditions(self, *conditions):
-        return leancloud.Query.and_(*map(
-            lambda cond: cond.apply(leancloud.Query(self._model.__lc_cls__)),
-            conditions
-        )) if len(conditions) >= 2 else \
-            conditions[0].apply(leancloud.Query(self._model.__lc_cls__))
+        if len(conditions) >= 2:
+            q = leancloud.Query.and_(*(cond.apply(leancloud.Query(self._model.__lc_cls__)) for cond in conditions))
+        else:
+            q = conditions[0].apply(leancloud.Query(self._model.__lc_cls__))
+
+        return q
 
     @property
     def _logical_fn(self):
-        return leancloud.Query.and_ if self._last_logical_op in ('and', None) else leancloud.Query.or_
+        if self._last_logical_op in ('and', None):
+            return leancloud.Query.and_
+        else:
+            return leancloud.Query.or_
 
     def filter(self, *conditions):
         """ select data with custom conditions. """
@@ -133,9 +141,8 @@ class Query(object):
         for field in args:
             from leancloud_better_storage.storage.fields import Field
             if not isinstance(field, Field):
-                raise ValueError(
-                    'Unexpected argument {}, includes(...) only take {} instance as argument.'.format(repr(field),
-                                                                                                      Field.__name__))
+                raise ValueError('Unexpected argument {}, '.format(repr(field)) +
+                                 'includes(...) only take Field instance as argument.')
             self._query.include(*(field.field_name for field in args))
         return self
 
@@ -174,7 +181,7 @@ class Query(object):
             q.limit(limit)
 
         try:
-            return tuple(*map(self._model, q.find()))
+            return tuple(map(self._model, q.find()))
         except leancloud.LeanCloudError as exc:
             if exc.code == LeanCloudErrorCode.ClassOrObjectNotExists.value:
                 return []

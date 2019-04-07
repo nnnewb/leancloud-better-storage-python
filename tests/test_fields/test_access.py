@@ -2,7 +2,8 @@ from unittest import TestCase
 
 import leancloud
 
-from leancloud_better_storage.storage import models, fields
+from leancloud_better_storage.storage import models
+from leancloud_better_storage.storage.fields import Field
 
 
 class TestAccess(TestCase):
@@ -19,20 +20,20 @@ class TestAccess(TestCase):
 
     def test_simple_access(self):
         class ModelA(models.Model):
-            name = fields.Field()
+            name = Field()
 
         model = ModelA.create(name='my name')
         self.assertEqual(model.name, 'my name')
 
     def test_inherit_field_access(self):
         class BaseModel(models.Model):
-            name = fields.Field()
+            name = Field()
 
         class ModelA(BaseModel):
             pass
 
         class ModelB(BaseModel):
-            age = fields.Field()
+            age = Field()
 
         a = ModelA.create(name='my name')
         self.assertEqual(a.name, 'my name')
@@ -42,19 +43,19 @@ class TestAccess(TestCase):
 
     def test_multi_inherit_overwrite_field(self):
         class BaseA(models.Model):
-            name = fields.Field()
+            name = Field()
 
         class BaseB(models.Model):
-            name = fields.Field()
+            name = Field()
 
         class ModelA(BaseA):
-            name = fields.Field()
+            name = Field()
 
         class ModelB(BaseA, BaseB):
-            name = fields.Field()
+            name = Field()
 
         class ModelC(BaseA, BaseB):
-            age = fields.Field()
+            age = Field()
 
         a = ModelA.create(name='hello')
         self.assertEqual(a.name, 'hello')
@@ -67,7 +68,7 @@ class TestAccess(TestCase):
     def test_commit_change(self):
         class ModelA(models.Model):
             __lc_cls__ = self.cls_name
-            name = fields.Field()
+            name = Field()
 
         model = ModelA.create(name='hi')
         model.commit()

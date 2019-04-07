@@ -2,7 +2,8 @@ from unittest import TestCase
 
 import leancloud
 
-from leancloud_better_storage.storage import models, fields
+from leancloud_better_storage.storage import models
+from leancloud_better_storage.storage.fields import Field
 from leancloud_better_storage.storage.query import QueryLogicalError
 
 
@@ -13,14 +14,14 @@ class TestQuery(TestCase):
         class People(models.Model):
             __lc_cls__ = 'TEST_People'
 
-            name = fields.Field()
-            age = fields.Field()
-            profile = fields.Field()
+            name = Field()
+            age = Field()
+            profile = Field()
 
         class PeopleProfile(models.Model):
             __lc_cls__ = 'TEST_PeopleProfile'
 
-            score = fields.Field()
+            score = Field()
 
         self.People = People
         self.PeopleProfile = PeopleProfile
@@ -34,9 +35,9 @@ class TestQuery(TestCase):
             model.commit()
 
     def tearDown(self):
-        for clsname in ('TEST_People', 'TEST_PeopleProfile'):
+        for cls_name in ('TEST_People', 'TEST_PeopleProfile'):
             while True:
-                result = leancloud.Query(clsname).find()
+                result = leancloud.Query(cls_name).find()
                 if len(result) == 0:
                     break
                 leancloud.Object.destroy_all(result)
@@ -173,7 +174,7 @@ class TestQuery(TestCase):
 
     def test_query_unknown_field(self):
         with self.assertRaises(KeyError):
-            self.People.query().filter_by(gamer='gogogo')
+            self.People.query().filter_by(something_unknown='unknown field')
 
     def test_query_count_unknown_collection(self):
         class M(models.Model):
