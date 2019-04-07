@@ -174,7 +174,7 @@ class Query(object):
             q.limit(limit)
 
         try:
-            return (*map(self._model, q.find()),)
+            return tuple(*map(self._model, q.find()))
         except leancloud.LeanCloudError as exc:
             if exc.code == LeanCloudErrorCode.ClassOrObjectNotExists.value:
                 return []
