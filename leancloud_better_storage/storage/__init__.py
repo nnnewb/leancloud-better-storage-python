@@ -104,7 +104,7 @@ class NestField(Field):
         if isinstance(value, dict) and value.get('__type') == 'Pointer':
             return value
         cls = self.get_model_class()
-        fn = lambda i: cls.createPointer(i.id)
+        fn = lambda i: None if i is None else cls.createPointer(i.id)
         if self._many:
             return [fn(j) for j in value]
         else:
